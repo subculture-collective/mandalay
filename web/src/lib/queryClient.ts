@@ -8,11 +8,21 @@ const defaultQueryOptions = {
   queries: {
     // Retry failed queries up to 3 times on network errors
     retry: (failureCount: number, error: Error) => {
+      // Check for HTTP status code in error object (if available)
+      const errorWithStatus = error as Error & { status?: number; response?: { status?: number } };
+      const status = errorWithStatus.status || errorWithStatus.response?.status;
+      
       // Don't retry on 4xx errors (client errors)
+      if (status && status >= 400 && status < 500) {
+        return false;
+      }
+      
+      // Also check error message for status codes (fallback for different error formats)
       if (error.message.includes('404') || error.message.includes('401') || error.message.includes('403')) {
         return false;
       }
-      // Retry up to 3 times for network errors
+      
+      // Retry up to 3 times for network errors and 5xx errors
       return failureCount < 3;
     },
     // Data is considered stale after 5 minutes

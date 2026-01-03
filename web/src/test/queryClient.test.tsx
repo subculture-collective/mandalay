@@ -61,13 +61,32 @@ describe('QueryClientProvider', () => {
       // Should not retry after 3 attempts
       expect(retryFn(3, new Error('Network error'))).toBe(false);
       
-      // Should not retry on 404 errors
+      // Should not retry on 4xx errors (via status property)
+      const error404 = Object.assign(new Error('Not found'), { status: 404 });
+      expect(retryFn(0, error404)).toBe(false);
+      
+      const error401 = Object.assign(new Error('Unauthorized'), { status: 401 });
+      expect(retryFn(0, error401)).toBe(false);
+      
+      const error403 = Object.assign(new Error('Forbidden'), { status: 403 });
+      expect(retryFn(0, error403)).toBe(false);
+      
+      // Should not retry on 4xx errors (via response.status property)
+      const errorWithResponse = Object.assign(new Error('Client error'), { 
+        response: { status: 400 } 
+      });
+      expect(retryFn(0, errorWithResponse)).toBe(false);
+      
+      // Should retry on 5xx errors
+      const error500 = Object.assign(new Error('Server error'), { status: 500 });
+      expect(retryFn(0, error500)).toBe(true);
+      expect(retryFn(1, error500)).toBe(true);
+      expect(retryFn(2, error500)).toBe(true);
+      expect(retryFn(3, error500)).toBe(false);
+      
+      // Fallback: Should not retry on errors with status codes in message
       expect(retryFn(0, new Error('Failed with 404'))).toBe(false);
-      
-      // Should not retry on 401 errors
       expect(retryFn(0, new Error('Failed with 401'))).toBe(false);
-      
-      // Should not retry on 403 errors
       expect(retryFn(0, new Error('Failed with 403'))).toBe(false);
     }
   });
