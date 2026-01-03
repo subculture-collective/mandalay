@@ -1,15 +1,34 @@
 import { useState, useEffect } from 'react';
-import type { TimelineEvent, PlacemarkDetail } from '../types/api';
+import type { TimelineEvent } from '../types/api';
 import { fetchTimelineEvents } from '../lib/api';
 import { TimelineItem } from './TimelineItem';
+import { useViewStore } from '../lib/store';
+import { usePlacemarkDetail } from '../lib/usePlacemarkDetail';
 
 export function Timeline() {
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [placemarkDetail, setPlacemarkDetail] = useState<PlacemarkDetail | null>(null);
+  
+  // Use shared selection state from store
+  const { selectedPlacemarkId, selectPlacemark } = useViewStore();
+  
+  // Fetch detail using TanStack Query - automatically handles caching
+  const { 
+    data: placemarkDetail, 
+    isLoading: detailLoading, 
+    isError: detailError,
+    error: detailErrorObj,
+    refetch: refetchDetail 
+  } = usePlacemarkDetail(selectedPlacemarkId);
+
+  // Helper to safely format location coordinates
+  const formatLocation = (coordinates: number[] | number[][] | number[][][]) => {
+    if (typeof coordinates[1] === 'number' && typeof coordinates[0] === 'number') {
+      return `${coordinates[1].toFixed(6)}, ${coordinates[0].toFixed(6)}`;
+    }
+    return 'Location data available';
+  };
 
   useEffect(() => {
     async function loadEvents() {
@@ -27,21 +46,9 @@ export function Timeline() {
     loadEvents();
   }, []);
 
-  const handleEventClick = async (event: TimelineEvent) => {
-    setSelectedEvent(event);
-    if (!event.placemark_id) return;
-
-    try {
-      setDetailLoading(true);
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/v1/placemarks/${event.placemark_id}`);
-      if (!response.ok) throw new Error('Failed to load placemark details');
-      const detail = await response.json();
-      setPlacemarkDetail(detail);
-    } catch (err) {
-      console.error('Failed to load placemark details:', err);
-    } finally {
-      setDetailLoading(false);
-    }
+  const handleEventClick = (event: TimelineEvent) => {
+    // Update shared selection state - this will trigger detail fetch via usePlacemarkDetail
+    selectPlacemark(event.placemark_id);
   };
 
   if (loading) {
@@ -91,13 +98,46 @@ export function Timeline() {
 
           {/* Detail Panel */}
           <div className="lg:col-span-1">
-            {selectedEvent ? (
+            {selectedPlacemarkId ? (
               <div className="sticky top-4 bg-white rounded-lg shadow-lg p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Event Details</h2>
                 
                 {detailLoading ? (
-                  <div className="flex justify-center py-8">
-                    <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+                  <div className="space-y-4" role="status" aria-label="Loading event details">
+                    {/* Loading skeleton */}
+                    <div className="animate-pulse">
+                      <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+                      <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+                      <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+                      <div className="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
+                      <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
+                      <div className="h-20 bg-gray-200 rounded mb-4"></div>
+                    </div>
+                  </div>
+                ) : detailError ? (
+                  <div className="py-4">
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                      <div className="flex items-start">
+                        <svg className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div className="ml-3 flex-1">
+                          <h3 className="text-sm font-medium text-red-800">Failed to load details</h3>
+                          <p className="mt-1 text-sm text-red-700">
+                            {detailErrorObj?.message || 'An error occurred while loading placemark details'}
+                          </p>
+                          <button
+                            onClick={() => refetchDetail()}
+                            className="mt-3 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                          >
+                            <svg className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Retry
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 ) : placemarkDetail ? (
                   <div className="space-y-4">
@@ -137,7 +177,7 @@ export function Timeline() {
                       <div>
                         <h3 className="font-medium text-gray-700 mb-1">Location</h3>
                         <p className="text-sm text-gray-600 font-mono">
-                          {placemarkDetail.location.coordinates[1].toFixed(6)}, {placemarkDetail.location.coordinates[0].toFixed(6)}
+                          {formatLocation(placemarkDetail.location.coordinates)}
                         </p>
                       </div>
                     )}
