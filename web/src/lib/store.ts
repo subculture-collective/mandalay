@@ -1,22 +1,60 @@
 import { create } from 'zustand';
 import type { PlacemarkDetail } from '../types/api';
 
+/**
+ * Valid view modes for the application.
+ * - 'timeline': Timeline-only view
+ * - 'map': Map-only view
+ * - 'split': Split view showing both timeline and map
+ */
 export type ViewMode = 'timeline' | 'map' | 'split';
 
+/**
+ * State shape for the view store.
+ */
 interface ViewState {
+  /** Currently selected placemark ID, or null if no selection */
   selectedPlacemarkId: number | null;
+  /** Current view mode for the application */
   viewMode: ViewMode;
+  /** Cache of placemark details keyed by placemark ID */
   detailCache: Map<number, PlacemarkDetail>;
 }
 
+/**
+ * Actions available in the view store.
+ */
 interface ViewActions {
+  /** Select a placemark by ID, or pass null to clear selection */
   selectPlacemark: (id: number | null) => void;
+  /** Set the current view mode */
   setViewMode: (mode: ViewMode) => void;
+  /** Cache placemark detail data for a given ID */
   cacheDetail: (id: number, data: PlacemarkDetail) => void;
 }
 
+/**
+ * Combined type for the view store including state and actions.
+ */
 export type ViewStore = ViewState & ViewActions;
 
+/**
+ * Zustand store for managing shared view state across timeline and map components.
+ * 
+ * @example
+ * ```typescript
+ * // Select a placemark
+ * const { selectPlacemark } = useViewStore();
+ * selectPlacemark(123);
+ * 
+ * // Read selected placemark in another component
+ * const selectedId = useViewStore((state) => state.selectedPlacemarkId);
+ * 
+ * // Change view mode
+ * const { setViewMode } = useViewStore();
+ * setViewMode('split');
+ * ```
+ */
 export const useViewStore = create<ViewStore>((set) => ({
   // Initial state
   selectedPlacemarkId: null,
@@ -25,9 +63,19 @@ export const useViewStore = create<ViewStore>((set) => ({
 
   // Actions
   selectPlacemark: (id) => set({ selectedPlacemarkId: id }),
-  setViewMode: (mode) => set({ viewMode: mode }),
+  setViewMode: (mode) => {
+    // Runtime validation to ensure valid ViewMode values
+    const validModes: ViewMode[] = ['timeline', 'map', 'split'];
+    if (!validModes.includes(mode)) {
+      console.error(`Invalid view mode: ${mode}. Must be one of: ${validModes.join(', ')}`);
+      return;
+    }
+    set({ viewMode: mode });
+  },
   cacheDetail: (id, data) =>
     set((state) => {
+      // Create a new Map to ensure Zustand detects the change for reactivity.
+      // This immutable update pattern is necessary for Zustand's shallow comparison.
       const newCache = new Map(state.detailCache);
       newCache.set(id, data);
       return { detailCache: newCache };
@@ -35,8 +83,26 @@ export const useViewStore = create<ViewStore>((set) => ({
 }));
 
 // Selectors for convenient access
+
+/**
+ * Selector to get the currently selected placemark ID.
+ */
 export const selectSelectedPlacemarkId = (state: ViewStore) => state.selectedPlacemarkId;
+
+/**
+ * Selector to get the current view mode.
+ */
 export const selectViewMode = (state: ViewStore) => state.viewMode;
+
+/**
+ * Selector to get the entire detail cache.
+ */
 export const selectDetailCache = (state: ViewStore) => state.detailCache;
+
+/**
+ * Selector factory to get a specific cached detail by ID.
+ * @param id - The placemark ID to retrieve from cache
+ * @returns A selector function that retrieves the cached detail
+ */
 export const selectCachedDetail = (id: number) => (state: ViewStore) => 
   state.detailCache.get(id);

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useViewStore, selectSelectedPlacemarkId, selectViewMode, selectDetailCache, selectCachedDetail } from '../lib/store';
 import type { PlacemarkDetail } from '../types/api';
 
@@ -124,6 +124,26 @@ describe('useViewStore', () => {
       const newState = useViewStore.getState();
       expect(newState.viewMode).toBe('map');
       expect(newState.selectedPlacemarkId).toBe(123);
+    });
+
+    it('rejects invalid view mode values with runtime validation', () => {
+      const state = useViewStore.getState();
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      
+      // Set initial valid mode
+      state.setViewMode('map');
+      expect(useViewStore.getState().viewMode).toBe('map');
+      
+      // Try to set invalid mode - should log error and not change state
+      // @ts-expect-error Testing runtime validation with invalid value
+      state.setViewMode('invalid');
+      
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Invalid view mode: invalid')
+      );
+      expect(useViewStore.getState().viewMode).toBe('map'); // Should remain 'map'
+      
+      consoleErrorSpy.mockRestore();
     });
   });
 
