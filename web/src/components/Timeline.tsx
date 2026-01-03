@@ -64,7 +64,7 @@ export function Timeline() {
       const searchLower = searchText.toLowerCase();
       filtered = filtered.filter((event) => {
         const nameMatch = event.name.toLowerCase().includes(searchLower);
-        const descriptionMatch = event.description?.toLowerCase().includes(searchLower);
+        const descriptionMatch = event.description?.toLowerCase().includes(searchLower) ?? false;
         return nameMatch || descriptionMatch;
       });
     }
