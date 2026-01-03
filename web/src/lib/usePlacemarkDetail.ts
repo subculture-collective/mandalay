@@ -47,8 +47,13 @@ export function usePlacemarkDetail(
   id: number | null | undefined
 ): UseQueryResult<PlacemarkDetail, Error> {
   return useQuery<PlacemarkDetail, Error>({
-    queryKey: placemarkDetailQueryKey(id!),
-    queryFn: () => fetchPlacemark(id!),
+    queryKey: placemarkDetailQueryKey(id ?? 0),
+    queryFn: () => {
+      if (id == null) {
+        throw new Error('Placemark ID is required');
+      }
+      return fetchPlacemark(id);
+    },
     // Only fetch when id is provided
     enabled: id != null,
     // Placemark details are relatively static, use same staleTime as timeline events
