@@ -63,3 +63,8 @@ export interface BBoxResponse {
   bbox: BBox;
   count: number;
 }
+
+export interface FoldersResponse {
+  folders: string[];
+  count: number;
+}

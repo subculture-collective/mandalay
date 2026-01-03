@@ -93,7 +93,7 @@ export function Timeline() {
         <header className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Vegas Shooting Timeline</h1>
           <p className="mt-2 text-gray-600">
-            {`${filteredEvents.length} of ${events.length} events${selectedFolder ? ' (filtered)' : ''}`}
+            {`${filteredEvents.length} of ${events.length} events${selectedFolder && filteredEvents.length !== events.length ? ' (filtered)' : ''}`}
           </p>
         </header>
 
