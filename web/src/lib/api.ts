@@ -1,3 +1,5 @@
+import type { BBoxResponse } from '../types/api';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
 
 export async function fetchTimelineEvents() {
@@ -45,6 +47,27 @@ export async function fetchFolders() {
   const response = await fetch(`${API_BASE_URL}/folders`);
   if (!response.ok) {
     throw new Error('Failed to fetch folders');
+  }
+  return response.json();
+}
+
+export async function fetchPlacemarksBBox(params: {
+  min_lon: number;
+  min_lat: number;
+  max_lon: number;
+  max_lat: number;
+  limit?: number;
+}): Promise<BBoxResponse> {
+  const searchParams = new URLSearchParams();
+  searchParams.set('min_lon', params.min_lon.toString());
+  searchParams.set('min_lat', params.min_lat.toString());
+  searchParams.set('max_lon', params.max_lon.toString());
+  searchParams.set('max_lat', params.max_lat.toString());
+  if (params.limit !== undefined) searchParams.set('limit', params.limit.toString());
+
+  const response = await fetch(`${API_BASE_URL}/spatial/bbox?${searchParams}`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch placemarks by bbox');
   }
   return response.json();
 }
