@@ -148,7 +148,9 @@ describe('Timeline - Selection and Detail Fetch Integration', () => {
   it('shows error state with retry button when detail fetch fails', async () => {
     vi.mocked(fetchTimelineEvents).mockResolvedValueOnce(mockTimelineEvents);
     const errorMessage = 'Failed to fetch placemark';
-    vi.mocked(fetchPlacemark).mockRejectedValueOnce(new Error(errorMessage));
+    vi.mocked(fetchPlacemark)
+      .mockRejectedValueOnce(new Error(errorMessage))
+      .mockResolvedValueOnce(mockPlacemarkDetail1); // Second call succeeds after retry
 
     render(<Timeline />, { wrapper });
 
@@ -166,7 +168,20 @@ describe('Timeline - Selection and Detail Fetch Integration', () => {
     }, { timeout: 3000 });
 
     expect(screen.getByText(errorMessage)).toBeInTheDocument();
-    expect(screen.getByText('Retry')).toBeInTheDocument();
+    expect(fetchPlacemark).toHaveBeenCalledTimes(1);
+
+    // Click retry button
+    const retryButton = screen.getByText('Retry');
+    fireEvent.click(retryButton);
+
+    // Wait for successful data after retry
+    await waitFor(() => {
+      expect(screen.getByText('Detailed description for event 1')).toBeInTheDocument();
+    });
+
+    // Verify fetchPlacemark was called again
+    expect(fetchPlacemark).toHaveBeenCalledTimes(2);
+    expect(fetchPlacemark).toHaveBeenCalledWith(1);
   });
 
   it('displays all expected detail fields when available', async () => {
@@ -196,5 +211,46 @@ describe('Timeline - Selection and Detail Fetch Integration', () => {
     expect(screen.getAllByText('Folder 1')).toHaveLength(2); // appears in timeline item and detail
     expect(screen.getAllByText('Location')).toHaveLength(1);
     expect(screen.getAllByText('Media')).toHaveLength(1);
+  });
+
+  it('caches placemark details and does not refetch on re-selection', async () => {
+    vi.mocked(fetchTimelineEvents).mockResolvedValueOnce(mockTimelineEvents);
+    vi.mocked(fetchPlacemark).mockResolvedValueOnce(mockPlacemarkDetail1);
+
+    render(<Timeline />, { wrapper });
+
+    // Wait for events to load
+    await waitFor(() => {
+      expect(screen.getAllByText('Event 1')).toHaveLength(1);
+    });
+
+    // Click on first event
+    fireEvent.click(screen.getAllByText('Event 1')[0]);
+
+    // Wait for detail to load
+    await waitFor(() => {
+      expect(screen.getByText('Detailed description for event 1')).toBeInTheDocument();
+    });
+
+    expect(fetchPlacemark).toHaveBeenCalledTimes(1);
+
+    // Manually clear selection by updating the store
+    useViewStore.setState({ selectedPlacemarkId: null });
+
+    // Wait for panel to update
+    await waitFor(() => {
+      expect(screen.getByText(/Select an event to view details/i)).toBeInTheDocument();
+    });
+
+    // Click on first event again (re-selection)
+    fireEvent.click(screen.getAllByText('Event 1')[0]);
+
+    // Wait for cached detail to display
+    await waitFor(() => {
+      expect(screen.getByText('Detailed description for event 1')).toBeInTheDocument();
+    });
+
+    // Verify fetchPlacemark was NOT called again (still only 1 call from before)
+    expect(fetchPlacemark).toHaveBeenCalledTimes(1);
   });
 });
