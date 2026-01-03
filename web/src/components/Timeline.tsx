@@ -3,6 +3,7 @@ import type { TimelineEvent } from '../types/api';
 import { fetchTimelineEvents } from '../lib/api';
 import { TimelineItem } from './TimelineItem';
 import { FolderFilter } from './FolderFilter';
+import { SearchFilter } from './SearchFilter';
 import { useViewStore } from '../lib/store';
 import { usePlacemarkDetail } from '../lib/usePlacemarkDetail';
 
@@ -12,7 +13,7 @@ export function Timeline() {
   const [error, setError] = useState<string | null>(null);
   
   // Use shared selection state from store
-  const { selectedPlacemarkId, selectPlacemark, selectedFolder } = useViewStore();
+  const { selectedPlacemarkId, selectPlacemark, selectedFolder, searchText } = useViewStore();
   
   // Fetch detail using TanStack Query - automatically handles caching
   const { 
@@ -47,15 +48,29 @@ export function Timeline() {
     loadEvents();
   }, []);
 
-  // Filter events by selected folder
+  // Filter events by selected folder and search text
   const filteredEvents = useMemo(() => {
-    if (!selectedFolder) {
-      return events;
+    let filtered = events;
+
+    // Apply folder filter
+    if (selectedFolder) {
+      filtered = filtered.filter((event) =>
+        event.folder_path.some((folder) => folder === selectedFolder)
+      );
     }
-    return events.filter((event) =>
-      event.folder_path.some((folder) => folder === selectedFolder)
-    );
-  }, [events, selectedFolder]);
+
+    // Apply search text filter (case-insensitive)
+    if (searchText.trim()) {
+      const searchLower = searchText.toLowerCase();
+      filtered = filtered.filter((event) => {
+        const nameMatch = event.name.toLowerCase().includes(searchLower);
+        const descriptionMatch = event.description?.toLowerCase().includes(searchLower);
+        return nameMatch || descriptionMatch;
+      });
+    }
+
+    return filtered;
+  }, [events, selectedFolder, searchText]);
 
   const handleEventClick = (event: TimelineEvent) => {
     // Update shared selection state - this will trigger detail fetch via usePlacemarkDetail
@@ -97,8 +112,9 @@ export function Timeline() {
           </p>
         </header>
 
-        {/* Folder Filter */}
-        <div className="mb-6">
+        {/* Search and Folder Filters */}
+        <div className="mb-6 space-y-4">
+          <SearchFilter />
           <FolderFilter />
         </div>
 
