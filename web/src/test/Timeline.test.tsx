@@ -10,10 +10,11 @@ import type { ReactNode } from 'react';
 vi.mock('../lib/api', () => ({
   fetchTimelineEvents: vi.fn(),
   fetchPlacemark: vi.fn(),
+  fetchFolders: vi.fn(),
 }));
 
 // Import after mock to get the mocked version
-import { fetchTimelineEvents, fetchPlacemark } from '../lib/api';
+import { fetchTimelineEvents, fetchPlacemark, fetchFolders } from '../lib/api';
 
 // Mock data
 const mockTimelineEvents: TimelineEvent[] = [
@@ -54,6 +55,11 @@ const mockPlacemarkDetail1: PlacemarkDetail = {
 describe('Timeline - Selection and Detail Fetch Integration', () => {
   let queryClient: QueryClient;
 
+  const mockFolders = {
+    folders: ['Folder 1', 'Folder 2'],
+    count: 2,
+  };
+
   beforeEach(() => {
     // Create a fresh QueryClient with no retries for faster tests
     queryClient = new QueryClient({
@@ -66,6 +72,9 @@ describe('Timeline - Selection and Detail Fetch Integration', () => {
     
     // Clear all mocks before each test
     vi.clearAllMocks();
+    
+    // Mock fetchFolders for all tests
+    vi.mocked(fetchFolders).mockResolvedValue(mockFolders);
     
     // Reset Zustand store state
     useViewStore.setState({ selectedPlacemarkId: null });
@@ -208,7 +217,7 @@ describe('Timeline - Selection and Detail Fetch Integration', () => {
     expect(screen.getAllByText('Time')).toHaveLength(1);
     expect(screen.getAllByText('Description')).toHaveLength(1);
     expect(screen.getAllByText('Category')).toHaveLength(1);
-    expect(screen.getAllByText('Folder 1')).toHaveLength(2); // appears in timeline item and detail
+    expect(screen.getAllByText('Folder 1')).toHaveLength(3); // appears in timeline item, detail, and folder filter dropdown
     expect(screen.getAllByText('Location')).toHaveLength(1);
     expect(screen.getAllByText('Media')).toHaveLength(1);
   });

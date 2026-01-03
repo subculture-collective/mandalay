@@ -19,6 +19,8 @@ interface ViewState {
   viewMode: ViewMode;
   /** Cache of placemark details keyed by placemark ID */
   detailCache: Map<number, PlacemarkDetail>;
+  /** Currently selected folder for filtering timeline events, or null for all folders */
+  selectedFolder: string | null;
 }
 
 /**
@@ -31,6 +33,8 @@ interface ViewActions {
   setViewMode: (mode: ViewMode) => void;
   /** Cache placemark detail data for a given ID */
   cacheDetail: (id: number, data: PlacemarkDetail) => void;
+  /** Set the selected folder for filtering, or pass null to clear filter */
+  setSelectedFolder: (folder: string | null) => void;
 }
 
 /**
@@ -60,6 +64,7 @@ export const useViewStore = create<ViewStore>((set) => ({
   selectedPlacemarkId: null,
   viewMode: 'timeline',
   detailCache: new Map(),
+  selectedFolder: null,
 
   // Actions
   selectPlacemark: (id) => set({ selectedPlacemarkId: id }),
@@ -80,6 +85,7 @@ export const useViewStore = create<ViewStore>((set) => ({
       newCache.set(id, data);
       return { detailCache: newCache };
     }),
+  setSelectedFolder: (folder) => set({ selectedFolder: folder }),
 }));
 
 // Selectors for convenient access
@@ -93,6 +99,11 @@ export const selectSelectedPlacemarkId = (state: ViewStore) => state.selectedPla
  * Selector to get the current view mode.
  */
 export const selectViewMode = (state: ViewStore) => state.viewMode;
+
+/**
+ * Selector to get the currently selected folder for filtering.
+ */
+export const selectSelectedFolder = (state: ViewStore) => state.selectedFolder;
 
 /**
  * Selector to get the entire detail cache.
