@@ -246,7 +246,7 @@ describe('Timeline - Folder Filter Integration', () => {
 
     // Wait for filter to apply
     await waitFor(() => {
-      expect(screen.getByText(/2 of 4 events (filtered)'/i)).toBeInTheDocument();
+      expect(screen.getByText(/2 of 4 events.*filtered/i)).toBeInTheDocument();
     });
 
     // Click on a filtered event
@@ -278,7 +278,7 @@ describe('Timeline - Folder Filter Integration', () => {
     useViewStore.setState({ selectedFolder: 'Videos taken on foot' });
 
     await waitFor(() => {
-      expect(screen.getByText(/2 of 4 events (filtered)'/i)).toBeInTheDocument();
+      expect(screen.getByText(/2 of 4 events.*filtered/i)).toBeInTheDocument();
     });
 
     // Select an event
@@ -286,7 +286,7 @@ describe('Timeline - Folder Filter Integration', () => {
 
     // Wait for any UI updates to complete by checking that filter is still active
     await waitFor(() => {
-      expect(screen.getByText(/2 of 4 events (filtered)'/i)).toBeInTheDocument();
+      expect(screen.getByText(/2 of 4 events.*filtered/i)).toBeInTheDocument();
     });
 
     // Filter should still be active
@@ -352,7 +352,7 @@ describe('Timeline - Folder Filter Integration', () => {
     useViewStore.setState({ selectedFolder: 'Videos taken on foot' });
 
     await waitFor(() => {
-      expect(screen.getByText(/2 of 4 events (filtered)'/i)).toBeInTheDocument();
+      expect(screen.getByText(/2 of 4 events.*filtered/i)).toBeInTheDocument();
     });
 
     // Verify that the filtering is done with useMemo and doesn't mutate original events array
