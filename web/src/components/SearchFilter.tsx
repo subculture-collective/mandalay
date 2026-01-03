@@ -20,11 +20,14 @@ export function SearchFilter() {
 
   // Sync input value with store when store changes externally
   useEffect(() => {
-    setInputValue(searchText);
+    if (searchText !== inputValue) {
+      setInputValue(searchText);
+    }
   }, [searchText]);
 
   const handleClear = () => {
     setInputValue('');
+    setSearchText('');
   };
 
   return (
@@ -59,6 +62,7 @@ export function SearchFilter() {
         />
         {inputValue && (
           <button
+            type="button"
             onClick={handleClear}
             className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600"
             aria-label="Clear search"

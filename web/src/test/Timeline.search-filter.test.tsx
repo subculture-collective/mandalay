@@ -214,6 +214,52 @@ describe('Timeline - Search Filter with Debounce', () => {
     expect(screen.queryByText('Place of Interest')).not.toBeInTheDocument();
   });
 
+  it('handles events with undefined description correctly', async () => {
+    // Create events where one has undefined description
+    const eventsWithUndefinedDesc: TimelineEvent[] = [
+      {
+        timestamp: '2017-10-01T21:41:56Z',
+        name: 'First Test Event',
+        description: 'This event has searchable content in description',
+        location: { lat: 36.094506, lon: -115.172281 },
+        media_links: [],
+        placemark_id: 1,
+        folder_path: ['Test'],
+      },
+      {
+        timestamp: '2017-10-01T21:42:56Z',
+        name: 'Second Test Event',
+        description: undefined,
+        location: { lat: 36.095506, lon: -115.173281 },
+        media_links: [],
+        placemark_id: 2,
+        folder_path: ['Test'],
+      },
+    ];
+
+    vi.mocked(fetchTimelineEvents).mockResolvedValueOnce(eventsWithUndefinedDesc);
+    vi.mocked(fetchFolders).mockResolvedValueOnce({ folders: ['Test'], count: 1 });
+
+    render(<Timeline />, { wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByText('First Test Event')).toBeInTheDocument();
+    });
+
+    const searchInput = screen.getByPlaceholderText(/search by name or description/i);
+
+    // Search for text that only appears in the description of the first event
+    fireEvent.change(searchInput, { target: { value: 'searchable content' } });
+
+    await waitFor(() => {
+      expect(screen.queryByText('Second Test Event')).not.toBeInTheDocument();
+    }, { timeout: 2000 });
+
+    // Only the event with matching description should be visible
+    expect(screen.getByText('First Test Event')).toBeInTheDocument();
+    expect(screen.queryByText('Second Test Event')).not.toBeInTheDocument();
+  });
+
   it('debounces rapid typing and only filters on final value', async () => {
     vi.mocked(fetchTimelineEvents).mockResolvedValueOnce(mockTimelineEvents);
     vi.mocked(fetchFolders).mockResolvedValueOnce(mockFolders);
