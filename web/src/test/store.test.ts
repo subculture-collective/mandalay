@@ -2,6 +2,21 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { useViewStore, selectSelectedPlacemarkId, selectViewMode, selectDetailCache, selectCachedDetail } from '../lib/store';
 import type { PlacemarkDetail } from '../types/api';
 
+// Shared mock data
+const mockPlacemarkDetail: PlacemarkDetail = {
+  id: 123,
+  name: 'Test Placemark',
+  description: 'This is a test placemark',
+  style_id: 'icon-1538-0288D1',
+  folder_path: ['Test Folder'],
+  timestamp: '2017-10-01T21:41:56Z',
+  location: {
+    type: 'Point',
+    coordinates: [-115.172281, 36.094506],
+  },
+  media_links: ['https://youtube.com/watch?v=test123'],
+};
+
 describe('useViewStore', () => {
   // Reset store state before each test
   beforeEach(() => {
@@ -113,20 +128,6 @@ describe('useViewStore', () => {
   });
 
   describe('cacheDetail', () => {
-    const mockPlacemarkDetail: PlacemarkDetail = {
-      id: 123,
-      name: 'Test Placemark',
-      description: 'This is a test placemark',
-      style_id: 'icon-1538-0288D1',
-      folder_path: ['Test Folder'],
-      timestamp: '2017-10-01T21:41:56Z',
-      location: {
-        type: 'Point',
-        coordinates: [-115.172281, 36.094506],
-      },
-      media_links: ['https://youtube.com/watch?v=test123'],
-    };
-
     it('caches placemark detail data', () => {
       const state = useViewStore.getState();
       state.cacheDetail(123, mockPlacemarkDetail);
@@ -180,20 +181,6 @@ describe('useViewStore', () => {
   });
 
   describe('selectors', () => {
-    const mockPlacemarkDetail: PlacemarkDetail = {
-      id: 123,
-      name: 'Test Placemark',
-      description: 'This is a test placemark',
-      style_id: 'icon-1538-0288D1',
-      folder_path: ['Test Folder'],
-      timestamp: '2017-10-01T21:41:56Z',
-      location: {
-        type: 'Point',
-        coordinates: [-115.172281, 36.094506],
-      },
-      media_links: ['https://youtube.com/watch?v=test123'],
-    };
-
     it('selectSelectedPlacemarkId returns the selected id', () => {
       useViewStore.getState().selectPlacemark(123);
       
@@ -230,20 +217,6 @@ describe('useViewStore', () => {
   });
 
   describe('state transitions', () => {
-    const mockPlacemarkDetail: PlacemarkDetail = {
-      id: 123,
-      name: 'Test Placemark',
-      description: 'This is a test placemark',
-      style_id: 'icon-1538-0288D1',
-      folder_path: ['Test Folder'],
-      timestamp: '2017-10-01T21:41:56Z',
-      location: {
-        type: 'Point',
-        coordinates: [-115.172281, 36.094506],
-      },
-      media_links: ['https://youtube.com/watch?v=test123'],
-    };
-
     it('handles complete workflow: select -> cache -> change view', () => {
       const state = useViewStore.getState();
       
