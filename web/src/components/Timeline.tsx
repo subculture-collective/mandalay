@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import type { TimelineEvent } from '../types/api';
 import { fetchTimelineEvents } from '../lib/api';
 import { TimelineItem } from './TimelineItem';
+import { FolderFilter } from './FolderFilter';
 import { useViewStore } from '../lib/store';
 import { usePlacemarkDetail } from '../lib/usePlacemarkDetail';
 
@@ -11,7 +12,7 @@ export function Timeline() {
   const [error, setError] = useState<string | null>(null);
   
   // Use shared selection state from store
-  const { selectedPlacemarkId, selectPlacemark } = useViewStore();
+  const { selectedPlacemarkId, selectPlacemark, selectedFolder } = useViewStore();
   
   // Fetch detail using TanStack Query - automatically handles caching
   const { 
@@ -46,6 +47,16 @@ export function Timeline() {
     loadEvents();
   }, []);
 
+  // Filter events by selected folder
+  const filteredEvents = useMemo(() => {
+    if (!selectedFolder) {
+      return events;
+    }
+    return events.filter((event) =>
+      event.folder_path.some((folder) => folder === selectedFolder)
+    );
+  }, [events, selectedFolder]);
+
   const handleEventClick = (event: TimelineEvent) => {
     // Update shared selection state - this will trigger detail fetch via usePlacemarkDetail
     selectPlacemark(event.placemark_id);
@@ -79,15 +90,23 @@ export function Timeline() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <header className="mb-8">
+        <header className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">Vegas Shooting Timeline</h1>
-          <p className="mt-2 text-gray-600">{events.length} events</p>
+          <p className="mt-2 text-gray-600">
+            {filteredEvents.length} of {events.length} events
+            {selectedFolder && ' (filtered)'}
+          </p>
         </header>
+
+        {/* Folder Filter */}
+        <div className="mb-6">
+          <FolderFilter />
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Timeline Events */}
           <div className="lg:col-span-2 space-y-4">
-            {events.map((event) => (
+            {filteredEvents.map((event) => (
               <TimelineItem
                 key={event.placemark_id}
                 event={event}
