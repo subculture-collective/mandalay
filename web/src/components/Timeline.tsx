@@ -92,6 +92,7 @@ export function Timeline() {
                 key={event.placemark_id}
                 event={event}
                 onClick={() => handleEventClick(event)}
+                isSelected={event.placemark_id === selectedPlacemarkId}
               />
             ))}
           </div>
