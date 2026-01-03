@@ -253,4 +253,101 @@ describe('Timeline - Selection and Detail Fetch Integration', () => {
     // Verify fetchPlacemark was NOT called again (still only 1 call from before)
     expect(fetchPlacemark).toHaveBeenCalledTimes(1);
   });
+
+  it('applies highlight style to selected timeline item', async () => {
+    vi.mocked(fetchTimelineEvents).mockResolvedValueOnce(mockTimelineEvents);
+    vi.mocked(fetchPlacemark).mockResolvedValueOnce(mockPlacemarkDetail1);
+
+    render(<Timeline />, { wrapper });
+
+    // Wait for events to load
+    await waitFor(() => {
+      expect(screen.getAllByText('Event 1')).toHaveLength(1);
+    });
+
+    // Get the timeline items (rendered as divs with specific classes)
+    const timelineItems = screen.getAllByText('Event 1')[0].closest('div[class*="border-l-4"]');
+    expect(timelineItems).toBeInTheDocument();
+    
+    // Before selection, item should not have selected styles
+    expect(timelineItems?.className).toContain('border-blue-500');
+    expect(timelineItems?.className).not.toContain('ring-2');
+
+    // Click on first event to select it
+    fireEvent.click(screen.getAllByText('Event 1')[0]);
+
+    // Wait for selection to be applied
+    await waitFor(() => {
+      const selectedItem = screen.getAllByText('Event 1')[0].closest('div[class*="border-l-4"]');
+      expect(selectedItem?.className).toContain('ring-2');
+      expect(selectedItem?.className).toContain('ring-blue-500');
+      expect(selectedItem?.className).toContain('bg-blue-50');
+    });
+  });
+
+  it('updates highlight when selection changes externally', async () => {
+    vi.mocked(fetchTimelineEvents).mockResolvedValueOnce(mockTimelineEvents);
+    vi.mocked(fetchPlacemark).mockResolvedValue(mockPlacemarkDetail1);
+
+    render(<Timeline />, { wrapper });
+
+    // Wait for events to load
+    await waitFor(() => {
+      expect(screen.getAllByText('Event 1')).toHaveLength(1);
+    });
+
+    // Simulate external selection change (e.g., from map click)
+    useViewStore.setState({ selectedPlacemarkId: 1 });
+
+    // Wait for highlight to be applied
+    await waitFor(() => {
+      const selectedItem = screen.getAllByText('Event 1')[0].closest('div[class*="border-l-4"]');
+      expect(selectedItem?.className).toContain('ring-2');
+      expect(selectedItem?.className).toContain('ring-blue-500');
+    });
+
+    // Change selection to Event 2
+    useViewStore.setState({ selectedPlacemarkId: 2 });
+
+    // Wait for highlight to move to Event 2
+    await waitFor(() => {
+      const event1Item = screen.getAllByText('Event 1')[0].closest('div[class*="border-l-4"]');
+      const event2Item = screen.getAllByText('Event 2')[0].closest('div[class*="border-l-4"]');
+      
+      // Event 1 should no longer have selected styles
+      expect(event1Item?.className).not.toContain('ring-2');
+      
+      // Event 2 should have selected styles
+      expect(event2Item?.className).toContain('ring-2');
+      expect(event2Item?.className).toContain('ring-blue-500');
+    });
+  });
+
+  it('calls scrollIntoView when item is selected', async () => {
+    vi.mocked(fetchTimelineEvents).mockResolvedValueOnce(mockTimelineEvents);
+    vi.mocked(fetchPlacemark).mockResolvedValueOnce(mockPlacemarkDetail1);
+
+    // Mock scrollIntoView
+    const scrollIntoViewMock = vi.fn();
+    Element.prototype.scrollIntoView = scrollIntoViewMock;
+
+    render(<Timeline />, { wrapper });
+
+    // Wait for events to load
+    await waitFor(() => {
+      expect(screen.getAllByText('Event 1')).toHaveLength(1);
+    });
+
+    // Click on first event to select it
+    fireEvent.click(screen.getAllByText('Event 1')[0]);
+
+    // Wait for scrollIntoView to be called
+    await waitFor(() => {
+      expect(scrollIntoViewMock).toHaveBeenCalledWith({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'nearest',
+      });
+    });
+  });
 });

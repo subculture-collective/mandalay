@@ -1,11 +1,14 @@
+import { useEffect, useRef } from 'react';
 import type { TimelineEvent } from '../types/api';
 
 interface TimelineItemProps {
   event: TimelineEvent;
   onClick: () => void;
+  isSelected?: boolean;
 }
 
-export function TimelineItem({ event, onClick }: TimelineItemProps) {
+export function TimelineItem({ event, onClick, isSelected = false }: TimelineItemProps) {
+  const itemRef = useRef<HTMLDivElement>(null);
   const parsedTime = event.timestamp ? new Date(event.timestamp) : null;
   const timeDisplay = parsedTime?.toLocaleTimeString('en-US', {
     hour: '2-digit',
@@ -13,10 +16,26 @@ export function TimelineItem({ event, onClick }: TimelineItemProps) {
     second: '2-digit',
   });
 
+  // Auto-scroll into view when selected
+  useEffect(() => {
+    if (isSelected && itemRef.current && typeof itemRef.current.scrollIntoView === 'function') {
+      itemRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'nearest',
+      });
+    }
+  }, [isSelected]);
+
   return (
     <div
+      ref={itemRef}
       onClick={onClick}
-      className="group relative cursor-pointer border-l-4 border-blue-500 bg-white p-4 shadow-sm transition-all hover:shadow-md hover:border-blue-600"
+      className={`group relative cursor-pointer border-l-4 bg-white p-4 shadow-sm transition-all hover:shadow-md ${
+        isSelected 
+          ? 'border-blue-600 ring-2 ring-blue-500 ring-offset-2 shadow-md bg-blue-50' 
+          : 'border-blue-500 hover:border-blue-600'
+      }`}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
