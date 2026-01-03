@@ -9,6 +9,12 @@ import type { FoldersResponse } from '../types/api';
 export const foldersQueryKey = ['folders'] as const;
 
 /**
+ * Folders are static data, so use longer cache times
+ */
+const FOLDERS_CACHE_STALE_TIME = 15 * 60 * 1000; // 15 minutes
+const FOLDERS_CACHE_GC_TIME = 20 * 60 * 1000; // 20 minutes
+
+/**
  * Hook to fetch folders using TanStack Query.
  * 
  * Folders are static data that rarely changes, so this hook uses a longer staleTime
@@ -37,8 +43,8 @@ export function useFolders(): UseQueryResult<FoldersResponse, Error> {
     queryKey: foldersQueryKey,
     queryFn: fetchFolders,
     // Folders are static data, so use a longer staleTime
-    staleTime: 15 * 60 * 1000, // 15 minutes
+    staleTime: FOLDERS_CACHE_STALE_TIME,
     // Keep in cache for 20 minutes after last use
-    gcTime: 20 * 60 * 1000,
+    gcTime: FOLDERS_CACHE_GC_TIME,
   });
 }
