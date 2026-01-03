@@ -4,7 +4,7 @@ import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { createQueryClient } from '../lib/queryClient';
 import { useTimelineEvents, timelineEventsQueryKey } from '../lib/useTimelineEvents';
 import type { TimelineEvent } from '../types/api';
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 // Mock the api module
 vi.mock('../lib/api', () => ({
