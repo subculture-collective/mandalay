@@ -41,7 +41,9 @@ export interface UsePlacemarksBBoxOptions {
  * Each unique bounding box is cached separately, allowing efficient switching between
  * different viewports without refetching.
  * 
- * @param bbox - The bounding box coordinates (min_lon, min_lat, max_lon, max_lat), or null/undefined to disable the query
+ * @param bbox - The bounding box coordinates (min_lon, min_lat, max_lon, max_lat), or null/undefined to disable the query.
+ *               Note: This should be a stable reference (e.g., from useState or useMemo) to ensure debouncing works correctly.
+ *               Creating a new object on every render will prevent requests from completing.
  * @param options - Optional configuration including limit, debounceMs, and enabled
  * @returns Query result with bounding box response data, loading state, error state, and refetch function
  * 
@@ -87,12 +89,13 @@ export function usePlacemarksBBox(
     return () => {
       clearTimeout(handler);
     };
-  }, [bbox, debounceMs]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bbox?.min_lon, bbox?.min_lat, bbox?.max_lon, bbox?.max_lat, debounceMs]);
 
   return useQuery<BBoxResponse, Error>({
     queryKey: debouncedBBox != null 
       ? placemarksBBoxQueryKey(debouncedBBox, limit)
-      : ['placemarks', 'bbox', 'disabled'],
+      : ['placemarks', 'bbox', 'disabled', limit],
     queryFn: () => {
       if (debouncedBBox == null) {
         // This should never happen since the query is only enabled when debouncedBBox is not null

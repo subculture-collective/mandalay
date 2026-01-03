@@ -138,6 +138,30 @@ describe('usePlacemarksBBox', () => {
     });
   });
 
+  it('includes limit: 0 as a valid parameter', async () => {
+    // Mock successful response
+    vi.mocked(fetchPlacemarksBBox).mockResolvedValueOnce(mockBBoxResponse);
+
+    const { result } = renderHook(
+      () => usePlacemarksBBox(mockBBox, { limit: 0 }),
+      { wrapper }
+    );
+
+    // Wait for debounce and query to complete
+    await waitFor(
+      () => {
+        expect(result.current.data).toBeDefined();
+      },
+      { timeout: 1000 }
+    );
+
+    expect(fetchPlacemarksBBox).toHaveBeenCalledTimes(1);
+    expect(fetchPlacemarksBBox).toHaveBeenCalledWith({
+      ...mockBBox,
+      limit: 0,
+    });
+  });
+
   it('debounces rapid bbox changes and only fetches the last value', async () => {
     vi.mocked(fetchPlacemarksBBox).mockResolvedValue(mockBBoxResponse);
 

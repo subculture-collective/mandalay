@@ -1,3 +1,5 @@
+import type { BBoxResponse } from '../types/api';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api/v1';
 
 export async function fetchTimelineEvents() {
@@ -55,7 +57,7 @@ export async function fetchPlacemarksBBox(params: {
   max_lon: number;
   max_lat: number;
   limit?: number;
-}) {
+}): Promise<BBoxResponse> {
   const searchParams = new URLSearchParams();
   searchParams.set('min_lon', params.min_lon.toString());
   searchParams.set('min_lat', params.min_lat.toString());
