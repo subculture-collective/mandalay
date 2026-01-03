@@ -50,3 +50,16 @@ export interface PlacemarkDetail {
   location?: GeoJSONGeometry;
   media_links?: string[];
 }
+
+export interface BBox {
+  min_lon: number;
+  min_lat: number;
+  max_lon: number;
+  max_lat: number;
+}
+
+export interface BBoxResponse {
+  placemarks: Placemark[];
+  bbox: BBox;
+  count: number;
+}
