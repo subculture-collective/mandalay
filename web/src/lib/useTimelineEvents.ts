@@ -12,7 +12,7 @@ export const timelineEventsQueryKey = ['timeline', 'events'] as const;
  * Hook to fetch timeline events using TanStack Query.
  * 
  * Timeline events are mostly static data, so this hook uses a longer staleTime
- * (10 minutes) compared to the default (5 minutes) to reduce unnecessary refetches.
+ * (10 minutes) compared to the application default (5 minutes) to reduce unnecessary refetches.
  * 
  * @returns Query result with timeline events data, loading state, error state, and refetch function
  * 
