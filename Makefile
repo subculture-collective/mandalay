@@ -1,4 +1,4 @@
-.PHONY: help deps fmt lint test build build-api build-import run dev api api-binary docker-up docker-down docker-logs db-shell import-data clean web-install web-dev web-build web-lint web-preview
+.PHONY: help deps fmt lint test build build-api build-import api docker-up docker-down docker-logs db-shell import-data devstack clean web-install web-dev web-build web-lint web-preview web-test
 
 GO ?= go
 DOCKER_COMPOSE ?= docker-compose
@@ -36,12 +36,6 @@ build-api: ## Build API server binary
 	@echo "Building API server..."
 	@$(GO) build -o $(API_BIN) ./cmd/api
 
-run: ## Run the API server (local env)
-	@$(GO) run ./cmd/api/main.go
-
-dev: ## Run API server with auto-reload (requires air)
-	@air
-
 # Database / Docker
 docker-up: ## Start PostgreSQL/PostGIS container
 	@$(DOCKER_COMPOSE) up -d
@@ -67,9 +61,10 @@ api: docker-up ## Start API server (go run) against containerized DB
 	@echo "Starting API server on :8080..."
 	@$(GO) run ./cmd/api/main.go
 
-api-binary: docker-up build-api ## Start API server from compiled binary
-	@echo "Starting compiled API server on :8080..."
-	@./$(API_BIN)
+# Full-stack local dev helper
+devstack: import-data ## Start DB, import KML data, then run API server
+	@echo "Starting API server on :8080..."
+	@$(GO) run ./cmd/api/main.go
 
 # Frontend (Vite/React/Tailwind)
 web-install: ## Install web dependencies
@@ -86,6 +81,9 @@ web-lint: ## Lint frontend
 
 web-preview: ## Preview built frontend
 	@npm run preview --prefix $(WEB_DIR)
+
+web-test: ## Run frontend tests
+	@npm test --prefix $(WEB_DIR)
 
 clean: ## Clean build artifacts
 	@rm -rf bin/
