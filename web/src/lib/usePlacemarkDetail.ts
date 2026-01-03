@@ -47,7 +47,7 @@ export function usePlacemarkDetail(
   id: number | null | undefined
 ): UseQueryResult<PlacemarkDetail, Error> {
   return useQuery<PlacemarkDetail, Error>({
-    queryKey: placemarkDetailQueryKey(id ?? 0),
+    queryKey: id != null ? placemarkDetailQueryKey(id) : ['placemark', 'disabled'],
     queryFn: () => {
       if (id == null) {
         throw new Error('Placemark ID is required');
