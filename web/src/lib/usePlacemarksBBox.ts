@@ -75,7 +75,7 @@ export function usePlacemarksBBox(
 ): UseQueryResult<BBoxResponse, Error> {
   const { limit, debounceMs = 300, enabled = true } = options || {};
   
-  // State to hold the debounced bbox - start with undefined to ensure debounce on initial mount
+  // State to hold the debounced bbox - start with undefined to ensure initial debounce
   const [debouncedBBox, setDebouncedBBox] = useState<BBox | null | undefined>(undefined);
 
   // Debounce the bbox changes
@@ -95,7 +95,8 @@ export function usePlacemarksBBox(
       : ['placemarks', 'bbox', 'disabled'],
     queryFn: () => {
       if (debouncedBBox == null) {
-        throw new Error('BBox is required');
+        // This should never happen since the query is only enabled when debouncedBBox is not null
+        throw new Error('BBox is required but was null or undefined - this indicates a query configuration error');
       }
       return fetchPlacemarksBBox({
         ...debouncedBBox,

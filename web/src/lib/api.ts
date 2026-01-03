@@ -61,7 +61,7 @@ export async function fetchPlacemarksBBox(params: {
   searchParams.set('min_lat', params.min_lat.toString());
   searchParams.set('max_lon', params.max_lon.toString());
   searchParams.set('max_lat', params.max_lat.toString());
-  if (params.limit) searchParams.set('limit', params.limit.toString());
+  if (params.limit !== undefined) searchParams.set('limit', params.limit.toString());
 
   const response = await fetch(`${API_BASE_URL}/spatial/bbox?${searchParams}`);
   if (!response.ok) {
