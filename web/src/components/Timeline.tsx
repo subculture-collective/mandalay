@@ -169,7 +169,9 @@ export function Timeline() {
                       <div>
                         <h3 className="font-medium text-gray-700 mb-1">Location</h3>
                         <p className="text-sm text-gray-600 font-mono">
-                          {placemarkDetail.location.coordinates[1].toFixed(6)}, {placemarkDetail.location.coordinates[0].toFixed(6)}
+                          {typeof placemarkDetail.location.coordinates[1] === 'number' && typeof placemarkDetail.location.coordinates[0] === 'number'
+                            ? `${placemarkDetail.location.coordinates[1].toFixed(6)}, ${placemarkDetail.location.coordinates[0].toFixed(6)}`
+                            : 'Location data available'}
                         </p>
                       </div>
                     )}
