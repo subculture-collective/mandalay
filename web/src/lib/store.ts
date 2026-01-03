@@ -21,6 +21,8 @@ interface ViewState {
   detailCache: Map<number, PlacemarkDetail>;
   /** Currently selected folder for filtering timeline events, or null for all folders */
   selectedFolder: string | null;
+  /** Search text for filtering timeline events by name/description */
+  searchText: string;
 }
 
 /**
@@ -35,6 +37,8 @@ interface ViewActions {
   cacheDetail: (id: number, data: PlacemarkDetail) => void;
   /** Set the selected folder for filtering, or pass null to clear filter */
   setSelectedFolder: (folder: string | null) => void;
+  /** Set the search text for filtering */
+  setSearchText: (text: string) => void;
 }
 
 /**
@@ -65,6 +69,7 @@ export const useViewStore = create<ViewStore>((set) => ({
   viewMode: 'timeline',
   detailCache: new Map(),
   selectedFolder: null,
+  searchText: '',
 
   // Actions
   selectPlacemark: (id) => set({ selectedPlacemarkId: id }),
@@ -86,6 +91,7 @@ export const useViewStore = create<ViewStore>((set) => ({
       return { detailCache: newCache };
     }),
   setSelectedFolder: (folder) => set({ selectedFolder: folder }),
+  setSearchText: (text) => set({ searchText: text }),
 }));
 
 // Selectors for convenient access
@@ -117,3 +123,8 @@ export const selectDetailCache = (state: ViewStore) => state.detailCache;
  */
 export const selectCachedDetail = (id: number) => (state: ViewStore) => 
   state.detailCache.get(id);
+
+/**
+ * Selector to get the current search text for filtering.
+ */
+export const selectSearchText = (state: ViewStore) => state.searchText;
