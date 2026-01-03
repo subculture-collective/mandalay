@@ -265,13 +265,13 @@ describe('Timeline - Selection and Detail Fetch Integration', () => {
       expect(screen.getAllByText('Event 1')).toHaveLength(1);
     });
 
-    // Get the timeline items (rendered as divs with specific classes)
-    const timelineItems = screen.getAllByText('Event 1')[0].closest('div[class*="border-l-4"]');
-    expect(timelineItems).toBeInTheDocument();
+    // Get the timeline item (rendered as a div with specific classes)
+    const timelineItem = screen.getAllByText('Event 1')[0].closest('div[class*="border-l-4"]');
+    expect(timelineItem).toBeInTheDocument();
     
     // Before selection, item should not have selected styles
-    expect(timelineItems?.className).toContain('border-blue-500');
-    expect(timelineItems?.className).not.toContain('ring-2');
+    expect(timelineItem?.className).toContain('border-blue-500');
+    expect(timelineItem?.className).not.toContain('ring-2');
 
     // Click on first event to select it
     fireEvent.click(screen.getAllByText('Event 1')[0]);
@@ -327,27 +327,75 @@ describe('Timeline - Selection and Detail Fetch Integration', () => {
     vi.mocked(fetchTimelineEvents).mockResolvedValueOnce(mockTimelineEvents);
     vi.mocked(fetchPlacemark).mockResolvedValueOnce(mockPlacemarkDetail1);
 
-    // Mock scrollIntoView
+    // Mock scrollIntoView and save original
     const scrollIntoViewMock = vi.fn();
+    const originalScrollIntoView = Element.prototype.scrollIntoView;
     Element.prototype.scrollIntoView = scrollIntoViewMock;
 
-    render(<Timeline />, { wrapper });
+    try {
+      render(<Timeline />, { wrapper });
 
-    // Wait for events to load
-    await waitFor(() => {
-      expect(screen.getAllByText('Event 1')).toHaveLength(1);
-    });
-
-    // Click on first event to select it
-    fireEvent.click(screen.getAllByText('Event 1')[0]);
-
-    // Wait for scrollIntoView to be called
-    await waitFor(() => {
-      expect(scrollIntoViewMock).toHaveBeenCalledWith({
-        behavior: 'smooth',
-        block: 'nearest',
-        inline: 'nearest',
+      // Wait for events to load
+      await waitFor(() => {
+        expect(screen.getAllByText('Event 1')).toHaveLength(1);
       });
-    });
+
+      // Click on first event to select it
+      fireEvent.click(screen.getAllByText('Event 1')[0]);
+
+      // Wait for scrollIntoView to be called
+      await waitFor(() => {
+        expect(scrollIntoViewMock).toHaveBeenCalledWith({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'nearest',
+        });
+      });
+    } finally {
+      // Restore original implementation
+      Element.prototype.scrollIntoView = originalScrollIntoView;
+    }
+  });
+
+  it('does not call scrollIntoView when item is deselected', async () => {
+    vi.mocked(fetchTimelineEvents).mockResolvedValueOnce(mockTimelineEvents);
+    vi.mocked(fetchPlacemark).mockResolvedValue(mockPlacemarkDetail1);
+
+    // Mock scrollIntoView and save original
+    const scrollIntoViewMock = vi.fn();
+    const originalScrollIntoView = Element.prototype.scrollIntoView;
+    Element.prototype.scrollIntoView = scrollIntoViewMock;
+
+    try {
+      render(<Timeline />, { wrapper });
+
+      // Wait for events to load
+      await waitFor(() => {
+        expect(screen.getAllByText('Event 1')).toHaveLength(1);
+      });
+
+      // Select Event 1
+      useViewStore.setState({ selectedPlacemarkId: 1 });
+
+      // Wait for scrollIntoView to be called
+      await waitFor(() => {
+        expect(scrollIntoViewMock).toHaveBeenCalledTimes(1);
+      });
+
+      // Clear the mock to track new calls
+      scrollIntoViewMock.mockClear();
+
+      // Deselect (set to null)
+      useViewStore.setState({ selectedPlacemarkId: null });
+
+      // Wait a bit to ensure no scroll happens
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Verify scrollIntoView was NOT called during deselection
+      expect(scrollIntoViewMock).not.toHaveBeenCalled();
+    } finally {
+      // Restore original implementation
+      Element.prototype.scrollIntoView = originalScrollIntoView;
+    }
   });
 });

@@ -31,10 +31,10 @@ export function TimelineItem({ event, onClick, isSelected = false }: TimelineIte
     <div
       ref={itemRef}
       onClick={onClick}
-      className={`group relative cursor-pointer border-l-4 bg-white p-4 shadow-sm transition-all hover:shadow-md ${
+      className={`group relative cursor-pointer border-l-4 bg-white p-4 shadow-sm transition-all ${
         isSelected 
           ? 'border-blue-600 ring-2 ring-blue-500 ring-offset-2 shadow-md bg-blue-50' 
-          : 'border-blue-500 hover:border-blue-600'
+          : 'border-blue-500 hover:border-blue-600 hover:shadow-md'
       }`}
     >
       <div className="flex items-start justify-between gap-4">
