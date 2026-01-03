@@ -22,6 +22,14 @@ export function Timeline() {
     refetch: refetchDetail 
   } = usePlacemarkDetail(selectedPlacemarkId);
 
+  // Helper to safely format location coordinates
+  const formatLocation = (coordinates: number[] | number[][] | number[][][]) => {
+    if (typeof coordinates[1] === 'number' && typeof coordinates[0] === 'number') {
+      return `${coordinates[1].toFixed(6)}, ${coordinates[0].toFixed(6)}`;
+    }
+    return 'Location data available';
+  };
+
   useEffect(() => {
     async function loadEvents() {
       try {
@@ -169,9 +177,7 @@ export function Timeline() {
                       <div>
                         <h3 className="font-medium text-gray-700 mb-1">Location</h3>
                         <p className="text-sm text-gray-600 font-mono">
-                          {typeof placemarkDetail.location.coordinates[1] === 'number' && typeof placemarkDetail.location.coordinates[0] === 'number'
-                            ? `${placemarkDetail.location.coordinates[1].toFixed(6)}, ${placemarkDetail.location.coordinates[0].toFixed(6)}`
-                            : 'Location data available'}
+                          {formatLocation(placemarkDetail.location.coordinates)}
                         </p>
                       </div>
                     )}
