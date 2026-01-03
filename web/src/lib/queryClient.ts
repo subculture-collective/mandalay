@@ -18,7 +18,9 @@ const defaultQueryOptions = {
       }
       
       // Also check error message for status codes (fallback for different error formats)
-      if (error.message.includes('404') || error.message.includes('401') || error.message.includes('403')) {
+      // Use regex to match exact status codes as words to avoid false positives (e.g., "Room 404B")
+      const clientErrorCodePattern = /\b(401|403|404)\b/;
+      if (clientErrorCodePattern.test(error.message)) {
         return false;
       }
       
@@ -48,6 +50,10 @@ export function createQueryClient(): QueryClient {
 
 /**
  * Singleton instance of QueryClient for the application.
- * Export this for use in tests or direct access if needed.
+ * Export this for use in the main app or direct access if needed.
+ * 
+ * ⚠️ WARNING: Do not use this singleton in tests! It can cause test pollution
+ * if tests run in parallel or if the cache is not properly cleared between tests.
+ * In tests, always use `createQueryClient()` to get a fresh instance.
  */
 export const queryClient = createQueryClient();

@@ -46,7 +46,7 @@ describe('QueryClientProvider', () => {
     expect(queryClient.getDefaultOptions().queries?.gcTime).toBe(10 * 60 * 1000);
   });
 
-  it('allows retry configuration to be overridden', () => {
+  it('validates default retry logic', () => {
     const queryClient = createQueryClient();
     const retryFn = queryClient.getDefaultOptions().queries?.retry;
     
@@ -84,10 +84,14 @@ describe('QueryClientProvider', () => {
       expect(retryFn(2, error500)).toBe(true);
       expect(retryFn(3, error500)).toBe(false);
       
-      // Fallback: Should not retry on errors with status codes in message
+      // Fallback: Should not retry on errors with status codes in message (exact match)
       expect(retryFn(0, new Error('Failed with 404'))).toBe(false);
       expect(retryFn(0, new Error('Failed with 401'))).toBe(false);
       expect(retryFn(0, new Error('Failed with 403'))).toBe(false);
+      
+      // Should retry on errors with status codes that are NOT exact matches (e.g., "Room 404B")
+      expect(retryFn(0, new Error('Room 404B unavailable'))).toBe(true);
+      expect(retryFn(0, new Error('Request failed with status 4041'))).toBe(true);
     }
   });
 });
