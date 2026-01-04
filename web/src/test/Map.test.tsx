@@ -2,6 +2,23 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { Map } from '../components/Map';
 
+// Mock the new components
+vi.mock('../components/MapBoundsHandler', () => ({
+  MapBoundsHandler: () => <div data-testid="mock-bounds-handler" />,
+}));
+
+vi.mock('../components/PlacemarkMarkers', () => ({
+  PlacemarkMarkers: () => <div data-testid="mock-placemark-markers" />,
+}));
+
+vi.mock('../lib/usePlacemarksBBox', () => ({
+  usePlacemarksBBox: () => ({
+    data: null,
+    isLoading: false,
+    isError: false,
+  }),
+}));
+
 // Mock react-leaflet to avoid issues with Leaflet in jsdom
 vi.mock('react-leaflet', () => ({
   MapContainer: ({ children, ...props }: { children?: React.ReactNode; [key: string]: unknown }) => (
