@@ -343,4 +343,35 @@ describe('Map Integration - Placemark Markers', () => {
     const markers = screen.queryAllByTestId('mock-marker');
     expect(markers).toHaveLength(0);
   });
+
+  it('handles bbox API errors gracefully and keeps map usable', async () => {
+    // Mock API error for the initial fetch
+    const errorMessage = 'Failed to fetch placemarks by bbox';
+    vi.mocked(fetchPlacemarksBBox).mockRejectedValue(new Error(errorMessage));
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <Map />
+      </QueryClientProvider>
+    );
+
+    // Wait for the API to be called
+    await waitFor(
+      () => {
+        expect(fetchPlacemarksBBox).toHaveBeenCalled();
+      },
+      { timeout: 2000 }
+    );
+
+    // Verify the map container still exists and is rendered (map remains usable)
+    expect(screen.getByTestId('mock-map-container')).toBeInTheDocument();
+    expect(screen.getByTestId('mock-tile-layer')).toBeInTheDocument();
+
+    // Verify no markers are rendered due to the error
+    const markers = screen.queryAllByTestId('mock-marker');
+    expect(markers).toHaveLength(0);
+
+    // The map should remain interactive - no error should break the UI
+    // This verifies that the error is handled non-blockingly as per acceptance criteria
+  });
 });
