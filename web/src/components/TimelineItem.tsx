@@ -10,6 +10,13 @@ interface TimelineItemProps {
 
 export function TimelineItem({ event, onClick, isSelected = false, onHeightChange }: TimelineItemProps) {
   const itemRef = useRef<HTMLDivElement>(null);
+  const onHeightChangeRef = useRef(onHeightChange);
+  
+  // Keep ref updated but don't trigger effect
+  useEffect(() => {
+    onHeightChangeRef.current = onHeightChange;
+  });
+
   const parsedTime = event.timestamp ? new Date(event.timestamp) : null;
   const timeDisplay = parsedTime?.toLocaleTimeString('en-US', {
     hour: '2-digit',
@@ -19,12 +26,12 @@ export function TimelineItem({ event, onClick, isSelected = false, onHeightChang
 
   // Report height changes for virtualization
   useEffect(() => {
-    if (onHeightChange && itemRef.current) {
+    if (onHeightChangeRef.current && itemRef.current) {
       // Only use ResizeObserver if available (not in all test environments)
       if (typeof ResizeObserver !== 'undefined') {
         const resizeObserver = new ResizeObserver((entries) => {
           for (const entry of entries) {
-            onHeightChange(entry.contentRect.height);
+            onHeightChangeRef.current?.(entry.contentRect.height);
           }
         });
         
@@ -35,10 +42,10 @@ export function TimelineItem({ event, onClick, isSelected = false, onHeightChang
         };
       } else {
         // Fallback: report height once on mount
-        onHeightChange(itemRef.current.offsetHeight);
+        onHeightChangeRef.current(itemRef.current.offsetHeight);
       }
     }
-  }, [onHeightChange]);
+  }, []); // Empty dependency array - only run once
 
   // Note: scrollIntoView is now handled by the virtualized list's scrollToItem
   // Keeping this for backwards compatibility when not virtualized
