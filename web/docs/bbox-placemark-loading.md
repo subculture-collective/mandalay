@@ -101,7 +101,7 @@ Map
 ### Unit Tests
 **File:** `web/src/test/usePlacemarksBBox.test.tsx`
 
-Tests include:
+16 tests covering:
 - Debouncing rapid bbox changes (only latest value fetched)
 - Custom debounce delays
 - Error handling at hook level
