@@ -4,6 +4,7 @@ import { fetchTimelineEvents } from '../lib/api';
 import { TimelineItem } from './TimelineItem';
 import { FolderFilter } from './FolderFilter';
 import { SearchFilter } from './SearchFilter';
+import { TimeRangeFilter } from './TimeRangeFilter';
 import { useViewStore } from '../lib/store';
 import { usePlacemarkDetail } from '../lib/usePlacemarkDetail';
 
@@ -13,7 +14,7 @@ export function Timeline() {
   const [error, setError] = useState<string | null>(null);
   
   // Use shared selection state from store
-  const { selectedPlacemarkId, selectPlacemark, selectedFolder, searchText } = useViewStore();
+  const { selectedPlacemarkId, selectPlacemark, selectedFolder, searchText, timeRangeStart, timeRangeEnd, includeNullTimestamps } = useViewStore();
   
   // Fetch detail using TanStack Query - automatically handles caching
   const { 
@@ -69,8 +70,24 @@ export function Timeline() {
       });
     }
 
+    // Apply time range filter
+    if (timeRangeStart !== null || timeRangeEnd !== null) {
+      filtered = filtered.filter((event) => {
+        // Handle null timestamps based on user preference
+        if (event.timestamp === null) {
+          return includeNullTimestamps;
+        }
+
+        const eventTime = new Date(event.timestamp).getTime();
+        const startTime = timeRangeStart ? new Date(timeRangeStart).getTime() : -Infinity;
+        const endTime = timeRangeEnd ? new Date(timeRangeEnd).getTime() : Infinity;
+
+        return eventTime >= startTime && eventTime <= endTime;
+      });
+    }
+
     return filtered;
-  }, [events, selectedFolder, searchText]);
+  }, [events, selectedFolder, searchText, timeRangeStart, timeRangeEnd, includeNullTimestamps]);
 
   const handleEventClick = (event: TimelineEvent) => {
     // Update shared selection state - this will trigger detail fetch via usePlacemarkDetail
@@ -116,6 +133,7 @@ export function Timeline() {
         <div className="mb-6 space-y-4">
           <SearchFilter />
           <FolderFilter />
+          <TimeRangeFilter />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
