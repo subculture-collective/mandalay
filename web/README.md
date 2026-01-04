@@ -2,6 +2,19 @@
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
+## Features
+
+### Marker Clustering
+
+The map uses `react-leaflet-markercluster` to automatically cluster markers in dense areas, improving readability and performance:
+
+- **Cluster Radius**: 60 pixels - markers within this distance are grouped
+- **Spiderfy on Max Zoom**: When zoomed in fully, overlapping markers spread out in a spider pattern
+- **Zoom to Bounds**: Clicking a cluster zooms to fit all its markers
+- **Selection Preserved**: Individual marker clicks still update the selection store
+
+Configuration can be adjusted in `src/components/PlacemarkMarkers.tsx`.
+
 Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
