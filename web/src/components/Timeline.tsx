@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { VariableSizeList } from 'react-window';
 import type { TimelineEvent } from '../types/api';
 import { fetchTimelineEvents } from '../lib/api';
 import { TimelineItem } from './TimelineItem';
@@ -9,10 +10,26 @@ import { FilterResetButton } from './FilterResetButton';
 import { useViewStore } from '../lib/store';
 import { usePlacemarkDetail } from '../lib/usePlacemarkDetail';
 
+// Estimated item height for virtualization
+const ESTIMATED_ITEM_HEIGHT = 120;
+const ITEM_GAP = 16; // 1rem gap between items
+const DEFAULT_LIST_HEIGHT = 600; // Default height for tests and SSR
+
+// Helper to safely get window height
+const getListHeight = () => {
+  if (typeof window === 'undefined') {
+    return DEFAULT_LIST_HEIGHT;
+  }
+  return Math.max(window.innerHeight - 300, DEFAULT_LIST_HEIGHT);
+};
+
 export function Timeline() {
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const listRef = useRef<VariableSizeList>(null);
+  // Use placemark_id as key for stable height caching across filter changes
+  const itemHeightsRef = useRef<Map<number, number>>(new Map());
   
   // Use shared selection state from store
   const { selectedPlacemarkId, selectPlacemark, selectedFolder, searchText, timeRangeStart, timeRangeEnd, includeNullTimestamps } = useViewStore();
@@ -108,6 +125,55 @@ export function Timeline() {
     selectPlacemark(event.placemark_id);
   };
 
+  // Scroll to selected item when selection changes
+  useEffect(() => {
+    if (selectedPlacemarkId !== null && listRef.current) {
+      const selectedIndex = filteredEvents.findIndex(
+        (event) => event.placemark_id === selectedPlacemarkId
+      );
+      if (selectedIndex !== -1) {
+        listRef.current.scrollToItem(selectedIndex, 'smart');
+      }
+    }
+  }, [selectedPlacemarkId]);
+
+  // Get item size with caching for better performance
+  // Cache by placemark_id for stability across filter changes
+  const getItemSize = useCallback(
+    (index: number) => {
+      const event = filteredEvents[index];
+      if (!event) {
+        return ESTIMATED_ITEM_HEIGHT;
+      }
+
+      const cachedHeight = itemHeightsRef.current.get(event.placemark_id);
+      return cachedHeight ?? ESTIMATED_ITEM_HEIGHT;
+    },
+    [filteredEvents]
+  );
+
+  // Set item height after rendering
+  const setItemHeight = useCallback(
+    (index: number, size: number) => {
+      const event = filteredEvents[index];
+      if (!event) {
+        return;
+      }
+
+      const key = event.placemark_id;
+      if (itemHeightsRef.current.get(key) !== size) {
+        itemHeightsRef.current.set(key, size);
+        listRef.current?.resetAfterIndex(index);
+      }
+    },
+    [filteredEvents]
+  );
+
+  // Recalculate list layout when filtered events change, but keep height cache
+  useEffect(() => {
+    listRef.current?.resetAfterIndex(0);
+  }, [filteredEvents.length]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -153,15 +219,50 @@ export function Timeline() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Timeline Events */}
-          <div className="lg:col-span-2 space-y-4">
-            {filteredEvents.map((event) => (
-              <TimelineItem
-                key={event.placemark_id}
-                event={event}
-                onClick={() => handleEventClick(event)}
-                isSelected={event.placemark_id === selectedPlacemarkId}
-              />
-            ))}
+          <div className="lg:col-span-2">
+            {filteredEvents.length > 0 ? (
+              <VariableSizeList
+                ref={listRef}
+                height={getListHeight()}
+                itemCount={filteredEvents.length}
+                itemSize={getItemSize}
+                itemKey={(index: number) => filteredEvents[index]?.placemark_id ?? index}
+                width="100%"
+                overscanCount={3}
+              >
+                {({ index, style }: { index: number; style: React.CSSProperties }) => {
+                  const event = filteredEvents[index];
+                  // Handle both number and string types for style properties
+                  const heightValue =
+                    typeof style.height === 'number'
+                      ? style.height
+                      : parseFloat((style.height ?? '0') as string);
+                  
+                  return (
+                    <div 
+                      role="listitem"
+                      aria-setsize={filteredEvents.length}
+                      aria-posinset={index + 1}
+                      style={{
+                        ...style,
+                        height: heightValue - ITEM_GAP,
+                      }}
+                    >
+                      <TimelineItem
+                        event={event}
+                        onClick={() => handleEventClick(event)}
+                        isSelected={event.placemark_id === selectedPlacemarkId}
+                        onHeightChange={(height) => setItemHeight(index, height + ITEM_GAP)}
+                      />
+                    </div>
+                  );
+                }}
+              </VariableSizeList>
+            ) : (
+              <div className="text-center py-12 text-gray-500" role="status" aria-live="polite">
+                No events match the current filters
+              </div>
+            )}
           </div>
 
           {/* Detail Panel */}
