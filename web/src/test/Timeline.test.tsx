@@ -336,9 +336,6 @@ describe('Timeline - Selection and Detail Fetch Integration', () => {
     vi.mocked(fetchTimelineEvents).mockResolvedValueOnce(mockTimelineEvents);
     vi.mocked(fetchPlacemark).mockResolvedValueOnce(mockPlacemarkDetail1);
 
-    // Mock scrollToItem on the virtualized list
-    const scrollToItemMock = vi.fn();
-    
     // Mock the VariableSizeList ref
     vi.mock('react-window', async () => {
       const actual = await vi.importActual('react-window');
