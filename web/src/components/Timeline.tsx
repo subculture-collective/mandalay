@@ -72,18 +72,31 @@ export function Timeline() {
 
     // Apply time range filter
     if (timeRangeStart !== null || timeRangeEnd !== null) {
-      filtered = filtered.filter((event) => {
-        // Handle null timestamps based on user preference
-        if (event.timestamp === null) {
-          return includeNullTimestamps;
-        }
+      // Parse and validate dates once for performance
+      const parsedStartTime = timeRangeStart ? Date.parse(timeRangeStart) : NaN;
+      const parsedEndTime = timeRangeEnd ? Date.parse(timeRangeEnd) : NaN;
+      const hasValidStart = !Number.isNaN(parsedStartTime);
+      const hasValidEnd = !Number.isNaN(parsedEndTime);
 
-        const eventTime = new Date(event.timestamp).getTime();
-        const startTime = timeRangeStart ? new Date(timeRangeStart).getTime() : -Infinity;
-        const endTime = timeRangeEnd ? new Date(timeRangeEnd).getTime() : Infinity;
+      if (hasValidStart || hasValidEnd) {
+        const startTime = hasValidStart ? parsedStartTime : -Infinity;
+        const endTime = hasValidEnd ? parsedEndTime : Infinity;
 
-        return eventTime >= startTime && eventTime <= endTime;
-      });
+        filtered = filtered.filter((event) => {
+          // Handle null timestamps based on user preference
+          if (event.timestamp === null) {
+            return includeNullTimestamps;
+          }
+
+          const eventTime = Date.parse(event.timestamp);
+          if (Number.isNaN(eventTime)) {
+            // Treat invalid event timestamps similarly to null timestamps
+            return includeNullTimestamps;
+          }
+
+          return eventTime >= startTime && eventTime <= endTime;
+        });
+      }
     }
 
     return filtered;
