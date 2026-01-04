@@ -1,6 +1,7 @@
-import { useEffect } from 'react';
-import { Marker, Popup } from 'react-leaflet';
-import MarkerClusterGroup from 'react-leaflet-markercluster';
+import { useEffect, useRef } from 'react';
+import { useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet.markercluster';
 import { useViewStore } from '../lib/store';
 import { DefaultMarkerIcon, SelectedIcon } from './Map';
 import type { Placemark } from '../types/api';
@@ -35,64 +36,104 @@ function parsePointGeometry(geometry: string): [number, number] | null {
 
 /**
  * Component to render placemark markers on the map.
+ * Uses native Leaflet.markerCluster for clustering instead of React wrapper.
  * Clicking a marker updates the selection in the shared store.
  * Selected marker is visually emphasized with a distinct icon.
  * Markers are automatically clustered in dense areas for better readability.
  */
 export function PlacemarkMarkers({ placemarks, onCoordinatesMap }: PlacemarkMarkersProps) {
+  const map = useMap();
+  const clusterGroupRef = useRef<L.LayerGroup | null>(null);
+  const markersRef = useRef<Map<number, L.Marker>>(new Map());
+
   const selectPlacemark = useViewStore((state) => state.selectPlacemark);
   const selectedPlacemarkId = useViewStore((state) => state.selectedPlacemarkId);
 
-  // Parse and map coordinates after render to avoid side effects during render phase
+  // Initialize and manage cluster group
   useEffect(() => {
-    if (onCoordinatesMap) {
-      placemarks.forEach((placemark) => {
-        const coords = parsePointGeometry(placemark.geometry);
-        if (coords) {
-          onCoordinatesMap(placemark.id, coords);
-        }
+    if (!clusterGroupRef.current) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const clusterGroup = (L as any).markerClusterGroup({
+        maxClusterRadius: 60,
+        spiderfyOnMaxZoom: true,
+        showCoverageOnHover: false,
+        zoomToBoundsOnClick: true,
       });
+      map.addLayer(clusterGroup);
+      clusterGroupRef.current = clusterGroup;
     }
-  }, [placemarks, onCoordinatesMap]);
 
-  return (
-    <MarkerClusterGroup
-      chunkedLoading // Load markers in chunks to improve performance with large datasets
-      maxClusterRadius={60}
-      spiderfyOnMaxZoom={true}
-      showCoverageOnHover={false}
-      zoomToBoundsOnClick={true}
-    >
-      {placemarks.map((placemark) => {
-        const coords = parsePointGeometry(placemark.geometry);
-        if (!coords) {
-          return null;
+    return () => {
+      if (clusterGroupRef.current && map.hasLayer(clusterGroupRef.current)) {
+        map.removeLayer(clusterGroupRef.current);
+        clusterGroupRef.current = null;
+      }
+    };
+  }, [map]);
+
+  // Update markers when placemarks change
+  useEffect(() => {
+    if (!clusterGroupRef.current) return;
+
+    // Remove old markers not in new placemarks
+    const newIds = new Set(placemarks.map((p) => p.id));
+    for (const [id, marker] of markersRef.current.entries()) {
+      if (!newIds.has(id)) {
+        clusterGroupRef.current.removeLayer(marker);
+        markersRef.current.delete(id);
+      }
+    }
+
+    // Add or update markers
+    placemarks.forEach((placemark) => {
+      const coords = parsePointGeometry(placemark.geometry);
+      if (!coords) return;
+
+      // Call coordinate callback
+      if (onCoordinatesMap) {
+        onCoordinatesMap(placemark.id, coords);
+      }
+
+      const existingMarker = markersRef.current.get(placemark.id);
+      if (existingMarker) {
+        // Update icon if selection status changed
+        const isSelected = placemark.id === selectedPlacemarkId;
+        existingMarker.setIcon(isSelected ? SelectedIcon : DefaultMarkerIcon);
+      } else {
+        // Create new marker
+        const isSelected = placemark.id === selectedPlacemarkId;
+        const marker = L.marker(coords, {
+          icon: isSelected ? SelectedIcon : DefaultMarkerIcon,
+        });
+
+        // Add popup
+        const popupContent = document.createElement('div');
+        popupContent.className = 'text-sm';
+        const name = document.createElement('h3');
+        name.className = 'font-semibold';
+        name.textContent = placemark.name;
+        popupContent.appendChild(name);
+
+        if (placemark.description) {
+          const desc = document.createElement('p');
+          desc.className = 'mt-1 text-gray-600';
+          desc.textContent = placemark.description;
+          popupContent.appendChild(desc);
         }
 
-        const isSelected = placemark.id === selectedPlacemarkId;
+        marker.bindPopup(popupContent);
 
-        return (
-          <Marker
-            key={placemark.id}
-            position={coords}
-            icon={isSelected ? SelectedIcon : DefaultMarkerIcon}
-            eventHandlers={{
-              click: () => {
-                selectPlacemark(placemark.id);
-              },
-            }}
-          >
-            <Popup>
-              <div className="text-sm">
-                <h3 className="font-semibold">{placemark.name}</h3>
-                {placemark.description && (
-                  <p className="mt-1 text-gray-600">{placemark.description}</p>
-                )}
-              </div>
-            </Popup>
-          </Marker>
-        );
-      })}
-    </MarkerClusterGroup>
-  );
+        // Add click handler
+        marker.on('click', () => {
+          selectPlacemark(placemark.id);
+        });
+
+        clusterGroupRef.current!.addLayer(marker);
+        markersRef.current.set(placemark.id, marker);
+      }
+    });
+  }, [placemarks, selectedPlacemarkId, onCoordinatesMap, selectPlacemark]);
+
+  // Return null since we're managing markers directly on the map
+  return null;
 }
