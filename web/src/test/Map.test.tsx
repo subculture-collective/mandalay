@@ -7,6 +7,10 @@ vi.mock('../components/MapBoundsHandler', () => ({
   MapBoundsHandler: () => <div data-testid="mock-bounds-handler" />,
 }));
 
+vi.mock('../components/MapFlyToHandler', () => ({
+  MapFlyToHandler: () => <div data-testid="mock-fly-to-handler" />,
+}));
+
 vi.mock('../components/PlacemarkMarkers', () => ({
   PlacemarkMarkers: () => <div data-testid="mock-placemark-markers" />,
 }));
@@ -38,6 +42,7 @@ vi.mock('react-leaflet', () => ({
 vi.mock('leaflet', () => ({
   default: {
     icon: vi.fn(() => ({})),
+    divIcon: vi.fn(() => ({})),
     Marker: {
       prototype: {
         options: {},

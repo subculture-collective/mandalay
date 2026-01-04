@@ -1,10 +1,13 @@
 import { Marker, Popup } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-markercluster';
 import { useViewStore } from '../lib/store';
+import { DefaultMarkerIcon, SelectedIcon } from './Map';
 import type { Placemark } from '../types/api';
 
 interface PlacemarkMarkersProps {
   placemarks: Placemark[];
+  /** Optional callback to provide coordinates for fly-to functionality */
+  onCoordinatesMap?: (placemarkId: number, coords: [number, number]) => void;
 }
 
 /**
@@ -32,10 +35,12 @@ function parsePointGeometry(geometry: string): [number, number] | null {
 /**
  * Component to render placemark markers on the map.
  * Clicking a marker updates the selection in the shared store.
+ * Selected marker is visually emphasized with a distinct icon.
  * Markers are automatically clustered in dense areas for better readability.
  */
-export function PlacemarkMarkers({ placemarks }: PlacemarkMarkersProps) {
+export function PlacemarkMarkers({ placemarks, onCoordinatesMap }: PlacemarkMarkersProps) {
   const selectPlacemark = useViewStore((state) => state.selectPlacemark);
+  const selectedPlacemarkId = useViewStore((state) => state.selectedPlacemarkId);
 
   return (
     <MarkerClusterGroup
@@ -51,10 +56,18 @@ export function PlacemarkMarkers({ placemarks }: PlacemarkMarkersProps) {
           return null;
         }
 
+        // Notify parent about coordinates for fly-to functionality
+        if (onCoordinatesMap) {
+          onCoordinatesMap(placemark.id, coords);
+        }
+
+        const isSelected = placemark.id === selectedPlacemarkId;
+
         return (
           <Marker
             key={placemark.id}
             position={coords}
+            icon={isSelected ? SelectedIcon : DefaultMarkerIcon}
             eventHandlers={{
               click: () => {
                 selectPlacemark(placemark.id);
