@@ -13,6 +13,15 @@ import { usePlacemarkDetail } from '../lib/usePlacemarkDetail';
 // Estimated item height for virtualization
 const ESTIMATED_ITEM_HEIGHT = 120;
 const ITEM_GAP = 16; // 1rem gap between items
+const DEFAULT_LIST_HEIGHT = 600; // Default height for tests and SSR
+
+// Helper to safely get window height
+const getListHeight = () => {
+  if (typeof window === 'undefined') {
+    return DEFAULT_LIST_HEIGHT;
+  }
+  return Math.max(window.innerHeight - 300, DEFAULT_LIST_HEIGHT);
+};
 
 export function Timeline() {
   const [events, setEvents] = useState<TimelineEvent[]>([]);
@@ -196,7 +205,7 @@ export function Timeline() {
             {filteredEvents.length > 0 ? (
               <VariableSizeList
                 ref={listRef}
-                height={Math.max(window.innerHeight - 300, 600)} // Minimum 600px for tests
+                height={getListHeight()}
                 itemCount={filteredEvents.length}
                 itemSize={getItemSize}
                 itemKey={(index: number) => filteredEvents[index].placemark_id}
