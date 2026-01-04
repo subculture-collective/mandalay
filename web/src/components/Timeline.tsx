@@ -5,6 +5,7 @@ import { TimelineItem } from './TimelineItem';
 import { FolderFilter } from './FolderFilter';
 import { SearchFilter } from './SearchFilter';
 import { TimeRangeFilter } from './TimeRangeFilter';
+import { FilterResetButton } from './FilterResetButton';
 import { useViewStore } from '../lib/store';
 import { usePlacemarkDetail } from '../lib/usePlacemarkDetail';
 
@@ -147,6 +148,7 @@ export function Timeline() {
           <SearchFilter />
           <FolderFilter />
           <TimeRangeFilter />
+          <FilterResetButton />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
