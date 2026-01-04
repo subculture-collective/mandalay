@@ -218,7 +218,7 @@ describe('Timeline - Selection and Detail Fetch Integration', () => {
     expect(screen.getAllByText('Description')).toHaveLength(1);
     expect(screen.getAllByText('Category')).toHaveLength(1);
     expect(screen.getAllByText('Folder 1')).toHaveLength(3); // appears in timeline item, detail, and folder filter dropdown
-    expect(screen.getAllByText('Location')).toHaveLength(1);
+    expect(screen.getAllByText('Coordinates')).toHaveLength(1);
     expect(screen.getAllByText('Media')).toHaveLength(1);
   });
 
