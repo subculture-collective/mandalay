@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { PlacemarkDetail as PlacemarkDetailType, GeoJSONGeometry } from '../types/api';
 
 interface PlacemarkDetailProps {
@@ -78,6 +78,16 @@ async function copyToClipboard(text: string): Promise<boolean> {
 
 export function PlacemarkDetail({ detail }: PlacemarkDetailProps) {
   const [copied, setCopied] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleCopyCoordinates = async () => {
     if (!detail.location) return;
@@ -90,7 +100,17 @@ export function PlacemarkDetail({ detail }: PlacemarkDetailProps) {
     
     if (success) {
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      
+      // Clear any existing timeout
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      
+      // Set new timeout and store reference for cleanup
+      timeoutRef.current = setTimeout(() => {
+        setCopied(false);
+        timeoutRef.current = null;
+      }, 2000);
     }
   };
 
@@ -125,7 +145,7 @@ export function PlacemarkDetail({ detail }: PlacemarkDetailProps) {
           <nav className="flex" aria-label="Breadcrumb">
             <ol className="inline-flex items-center space-x-1 md:space-x-2">
               {detail.folder_path.map((folder, index) => (
-                <li key={index} className="inline-flex items-center">
+                <li key={`${folder}-${index}`} className="inline-flex items-center">
                   {index > 0 && (
                     <svg
                       className="w-3 h-3 text-gray-400 mx-1"
@@ -151,78 +171,102 @@ export function PlacemarkDetail({ detail }: PlacemarkDetailProps) {
         </div>
       )}
 
-      {detail.location && extractLatLon(detail.location) && (
-        <div>
-          <h3 className="font-medium text-gray-700 mb-1">Coordinates</h3>
-          <div className="flex items-center gap-2">
-            <p className="text-sm text-gray-600 font-mono">
-              {(() => {
-                const latLon = extractLatLon(detail.location!);
-                return latLon ? `${latLon.lat.toFixed(6)}, ${latLon.lon.toFixed(6)}` : '';
-              })()}
-            </p>
-            <button
-              onClick={handleCopyCoordinates}
-              className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-              aria-label="Copy coordinates to clipboard"
-            >
-              {copied ? (
-                <>
-                  <svg
-                    className="w-3 h-3 mr-1 text-green-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                  <span className="text-green-600">Copied!</span>
-                </>
-              ) : (
-                <>
-                  <svg
-                    className="w-3 h-3 mr-1"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                    />
-                  </svg>
-                  Copy
-                </>
-              )}
-            </button>
+      {(() => {
+        if (!detail.location) {
+          return null;
+        }
+        const latLon = extractLatLon(detail.location);
+        if (!latLon) {
+          return null;
+        }
+        return (
+          <div>
+            <h3 className="font-medium text-gray-700 mb-1">Coordinates</h3>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-gray-600 font-mono">
+                {`${latLon.lat.toFixed(6)}, ${latLon.lon.toFixed(6)}`}
+              </p>
+              <button
+                onClick={handleCopyCoordinates}
+                className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                aria-label="Copy coordinates to clipboard"
+              >
+                {copied ? (
+                  <>
+                    <svg
+                      className="w-3 h-3 mr-1 text-green-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    <span className="text-green-600">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      className="w-3 h-3 mr-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                      />
+                    </svg>
+                    Copy
+                  </>
+                )}
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {detail.media_links && detail.media_links.length > 0 && (
         <div>
           <h3 className="font-medium text-gray-700 mb-2">Media</h3>
           <div className="space-y-2">
-            {detail.media_links.map((link: string, idx: number) => (
-              <a
-                key={idx}
-                href={link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block text-sm text-blue-600 hover:text-blue-800 hover:underline"
-              >
-                {link.includes('youtube') ? 'YouTube Video' : 'Media'} {idx + 1}
-              </a>
-            ))}
+            {detail.media_links.map((link: string, idx: number) => {
+              // Validate URL and ensure it uses safe protocols
+              let url: URL;
+              try {
+                url = new URL(link);
+              } catch {
+                // Skip invalid URLs
+                return null;
+              }
+
+              if (!/^https?:$/i.test(url.protocol)) {
+                // Skip URLs with unsafe protocols
+                return null;
+              }
+
+              const safeHref = url.toString();
+
+              return (
+                <a
+                  key={`${link}-${idx}`}
+                  href={safeHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  {link.includes('youtube') ? 'YouTube Video' : 'Media'} {idx + 1}
+                </a>
+              );
+            })}
           </div>
         </div>
       )}

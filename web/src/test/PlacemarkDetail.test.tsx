@@ -282,4 +282,42 @@ describe('PlacemarkDetail', () => {
     // Should have 2 separators for 3 folders (n-1 separators)
     expect(svgSeparators).toHaveLength(2);
   });
+
+  it('filters out media links with unsafe protocols', () => {
+    const detailWithUnsafeLinks: PlacemarkDetailType = {
+      ...mockPlacemarkDetail,
+      media_links: [
+        'https://safe.com/video.mp4',
+        'javascript:alert("XSS")',
+        'data:text/html,<script>alert("XSS")</script>',
+        'http://also-safe.com/image.jpg',
+      ],
+    };
+    render(<PlacemarkDetail detail={detailWithUnsafeLinks} />);
+    
+    // Should only render links with safe protocols (http, https)
+    const links = screen.getAllByRole('link');
+    expect(links).toHaveLength(2);
+    expect(links[0]).toHaveAttribute('href', 'https://safe.com/video.mp4');
+    expect(links[1]).toHaveAttribute('href', 'http://also-safe.com/image.jpg');
+  });
+
+  it('filters out invalid URLs in media links', () => {
+    const detailWithInvalidLinks: PlacemarkDetailType = {
+      ...mockPlacemarkDetail,
+      media_links: [
+        'https://valid.com/video.mp4',
+        'not a valid url',
+        'also invalid',
+        'https://another-valid.com/image.jpg',
+      ],
+    };
+    render(<PlacemarkDetail detail={detailWithInvalidLinks} />);
+    
+    // Should only render valid URLs
+    const links = screen.getAllByRole('link');
+    expect(links).toHaveLength(2);
+    expect(links[0]).toHaveAttribute('href', 'https://valid.com/video.mp4');
+    expect(links[1]).toHaveAttribute('href', 'https://another-valid.com/image.jpg');
+  });
 });
