@@ -23,6 +23,12 @@ interface ViewState {
   selectedFolder: string | null;
   /** Search text for filtering timeline events by name/description */
   searchText: string;
+  /** Start of time range filter for timeline events, or null for no start filter */
+  timeRangeStart: string | null;
+  /** End of time range filter for timeline events, or null for no end filter */
+  timeRangeEnd: string | null;
+  /** Whether to include events with null timestamps when time range filter is active */
+  includeNullTimestamps: boolean;
 }
 
 /**
@@ -39,6 +45,10 @@ interface ViewActions {
   setSelectedFolder: (folder: string | null) => void;
   /** Set the search text for filtering */
   setSearchText: (text: string) => void;
+  /** Set the time range filter for timeline events, pass null for either to clear that bound */
+  setTimeRange: (start: string | null, end: string | null) => void;
+  /** Set whether to include events with null timestamps when time range filter is active */
+  setIncludeNullTimestamps: (include: boolean) => void;
 }
 
 /**
@@ -70,6 +80,9 @@ export const useViewStore = create<ViewStore>((set) => ({
   detailCache: new Map(),
   selectedFolder: null,
   searchText: '',
+  timeRangeStart: null,
+  timeRangeEnd: null,
+  includeNullTimestamps: true,
 
   // Actions
   selectPlacemark: (id) => set({ selectedPlacemarkId: id }),
@@ -92,6 +105,8 @@ export const useViewStore = create<ViewStore>((set) => ({
     }),
   setSelectedFolder: (folder) => set({ selectedFolder: folder }),
   setSearchText: (text) => set({ searchText: text }),
+  setTimeRange: (start, end) => set({ timeRangeStart: start, timeRangeEnd: end }),
+  setIncludeNullTimestamps: (include) => set({ includeNullTimestamps: include }),
 }));
 
 // Selectors for convenient access

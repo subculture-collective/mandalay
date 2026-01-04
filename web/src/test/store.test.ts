@@ -325,4 +325,73 @@ describe('useViewStore', () => {
       expect(cache.get(456)).toEqual(mockPlacemark2);
     });
   });
+
+  describe('setTimeRange', () => {
+    it('sets both start and end time range', () => {
+      const state = useViewStore.getState();
+      state.setTimeRange('2017-10-01T21:00:00', '2017-10-01T22:00:00');
+      
+      const newState = useViewStore.getState();
+      expect(newState.timeRangeStart).toBe('2017-10-01T21:00:00');
+      expect(newState.timeRangeEnd).toBe('2017-10-01T22:00:00');
+    });
+
+    it('clears time range when both are null', () => {
+      const state = useViewStore.getState();
+      
+      // First set a time range
+      state.setTimeRange('2017-10-01T21:00:00', '2017-10-01T22:00:00');
+      expect(useViewStore.getState().timeRangeStart).not.toBeNull();
+      
+      // Then clear it
+      state.setTimeRange(null, null);
+      const newState = useViewStore.getState();
+      expect(newState.timeRangeStart).toBeNull();
+      expect(newState.timeRangeEnd).toBeNull();
+    });
+
+    it('sets only start time when end is null', () => {
+      const state = useViewStore.getState();
+      state.setTimeRange('2017-10-01T21:00:00', null);
+      
+      const newState = useViewStore.getState();
+      expect(newState.timeRangeStart).toBe('2017-10-01T21:00:00');
+      expect(newState.timeRangeEnd).toBeNull();
+    });
+
+    it('sets only end time when start is null', () => {
+      const state = useViewStore.getState();
+      state.setTimeRange(null, '2017-10-01T22:00:00');
+      
+      const newState = useViewStore.getState();
+      expect(newState.timeRangeStart).toBeNull();
+      expect(newState.timeRangeEnd).toBe('2017-10-01T22:00:00');
+    });
+  });
+
+  describe('setIncludeNullTimestamps', () => {
+    it('initializes with includeNullTimestamps as true', () => {
+      const state = useViewStore.getState();
+      expect(state.includeNullTimestamps).toBe(true);
+    });
+
+    it('sets includeNullTimestamps to false', () => {
+      const state = useViewStore.getState();
+      state.setIncludeNullTimestamps(false);
+      
+      expect(useViewStore.getState().includeNullTimestamps).toBe(false);
+    });
+
+    it('sets includeNullTimestamps to true', () => {
+      const state = useViewStore.getState();
+      
+      // First set to false
+      state.setIncludeNullTimestamps(false);
+      expect(useViewStore.getState().includeNullTimestamps).toBe(false);
+      
+      // Then set back to true
+      state.setIncludeNullTimestamps(true);
+      expect(useViewStore.getState().includeNullTimestamps).toBe(true);
+    });
+  });
 });
