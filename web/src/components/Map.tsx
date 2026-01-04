@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import type { LatLngExpression } from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 
 // Fix for default marker icon in webpack/vite
 import L from 'leaflet';
