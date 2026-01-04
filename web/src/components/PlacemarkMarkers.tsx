@@ -39,7 +39,7 @@ export function PlacemarkMarkers({ placemarks }: PlacemarkMarkersProps) {
 
   return (
     <MarkerClusterGroup
-      chunkedLoading
+      chunkedLoading // Load markers in chunks to improve performance with large datasets
       maxClusterRadius={60}
       spiderfyOnMaxZoom={true}
       showCoverageOnHover={false}
