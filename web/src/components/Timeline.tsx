@@ -9,6 +9,7 @@ import { TimeRangeFilter } from './TimeRangeFilter';
 import { FilterResetButton } from './FilterResetButton';
 import { useViewStore } from '../lib/store';
 import { usePlacemarkDetail } from '../lib/usePlacemarkDetail';
+import { PlacemarkDetail } from './PlacemarkDetail';
 
 // Estimated item height for virtualization
 const ESTIMATED_ITEM_HEIGHT = 120;
@@ -42,14 +43,6 @@ export function Timeline() {
     error: detailErrorObj,
     refetch: refetchDetail 
   } = usePlacemarkDetail(selectedPlacemarkId);
-
-  // Helper to safely format location coordinates
-  const formatLocation = (coordinates: number[] | number[][] | number[][][]) => {
-    if (typeof coordinates[1] === 'number' && typeof coordinates[0] === 'number') {
-      return `${coordinates[1].toFixed(6)}, ${coordinates[0].toFixed(6)}`;
-    }
-    return 'Location data available';
-  };
 
   useEffect(() => {
     async function loadEvents() {
@@ -309,67 +302,7 @@ export function Timeline() {
                     </div>
                   </div>
                 ) : placemarkDetail ? (
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="font-medium text-gray-700 mb-1">Name</h3>
-                      <p className="text-gray-900">{placemarkDetail.name}</p>
-                    </div>
-
-                    {placemarkDetail.timestamp && (
-                      <div>
-                        <h3 className="font-medium text-gray-700 mb-1">Time</h3>
-                        <p className="text-gray-900 font-mono text-sm">
-                          {new Date(placemarkDetail.timestamp).toLocaleString()}
-                        </p>
-                      </div>
-                    )}
-
-                    {placemarkDetail.description && (
-                      <div>
-                        <h3 className="font-medium text-gray-700 mb-1">Description</h3>
-                        <div className="text-sm text-gray-900 prose prose-sm max-w-none">
-                          {placemarkDetail.description}
-                        </div>
-                      </div>
-                    )}
-
-                    {placemarkDetail.folder_path.length > 0 && (
-                      <div>
-                        <h3 className="font-medium text-gray-700 mb-1">Category</h3>
-                        <p className="text-sm text-gray-600">
-                          {placemarkDetail.folder_path.join(' > ')}
-                        </p>
-                      </div>
-                    )}
-
-                    {placemarkDetail.location && (
-                      <div>
-                        <h3 className="font-medium text-gray-700 mb-1">Location</h3>
-                        <p className="text-sm text-gray-600 font-mono">
-                          {formatLocation(placemarkDetail.location.coordinates)}
-                        </p>
-                      </div>
-                    )}
-
-                    {placemarkDetail.media_links && placemarkDetail.media_links.length > 0 && (
-                      <div>
-                        <h3 className="font-medium text-gray-700 mb-2">Media</h3>
-                        <div className="space-y-2">
-                          {placemarkDetail.media_links.map((link: string, idx: number) => (
-                            <a
-                              key={idx}
-                              href={link}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="block text-sm text-blue-600 hover:text-blue-800 hover:underline"
-                            >
-                              {link.includes('youtube') ? 'YouTube Video' : 'Media'} {idx + 1}
-                            </a>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  <PlacemarkDetail detail={placemarkDetail} />
                 ) : (
                   <p className="text-gray-500">No additional details available</p>
                 )}
