@@ -114,10 +114,10 @@ describe('PlacemarkMarkers - Marker Highlighting', () => {
     const markers = screen.getAllByTestId('mock-marker');
     expect(markers).toHaveLength(3);
     
-    // Check each marker's icon
+    // Check each marker's icon by matching the exact lat
     const marker1 = markers.find(m => m.getAttribute('data-lat') === '36.094506');
     const marker2 = markers.find(m => m.getAttribute('data-lat') === '36.169941');
-    const marker3 = markers.find(m => m.getAttribute('data-lat') === '36.180');
+    const marker3 = markers.find(m => m.getAttribute('data-lat') === '36.18');
     
     expect(marker1?.getAttribute('data-icon')).toBe('default');
     expect(marker2?.getAttribute('data-icon')).toBe('selected'); // Selected
@@ -185,17 +185,22 @@ describe('PlacemarkMarkers - Marker Highlighting', () => {
     expect(selectedMarkers[0].getAttribute('data-lat')).toBe('36.169941');
   });
 
-  it('clicking a marker updates the selection and highlights it', () => {
+  it('clicking a marker updates the selection and highlights it', async () => {
     render(<PlacemarkMarkers placemarks={placemarks} />);
     
     const markers = screen.getAllByTestId('mock-marker');
-    const marker3 = markers.find(m => m.getAttribute('data-lat') === '36.180');
+    const marker3 = markers.find(m => m.getAttribute('data-lat') === '36.18');
     
     // Initially no marker is selected
     expect(useViewStore.getState().selectedPlacemarkId).toBeNull();
     
     // Click marker 3
-    marker3?.click();
+    if (marker3) {
+      marker3.click();
+    }
+    
+    // Wait for state update
+    await new Promise(resolve => setTimeout(resolve, 10));
     
     // Selection should be updated
     expect(useViewStore.getState().selectedPlacemarkId).toBe(3);
