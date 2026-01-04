@@ -14,9 +14,11 @@
   "dependencies": {
     "@tanstack/react-query": "^5.90.16",
     "leaflet": "^1.9.4",
+    "leaflet.markercluster": "^1.5.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-leaflet": "^5.0.0",
+    "react-leaflet-markercluster": "^5.0.0-rc.0",
     "react-window": "^1.8.11",
     "zustand": "^5.0.9"
   },

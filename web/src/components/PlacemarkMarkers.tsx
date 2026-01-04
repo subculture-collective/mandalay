@@ -1,4 +1,5 @@
 import { Marker, Popup } from 'react-leaflet';
+import MarkerClusterGroup from 'react-leaflet-markercluster';
 import { useViewStore } from '../lib/store';
 import type { Placemark } from '../types/api';
 
@@ -31,12 +32,19 @@ function parsePointGeometry(geometry: string): [number, number] | null {
 /**
  * Component to render placemark markers on the map.
  * Clicking a marker updates the selection in the shared store.
+ * Markers are automatically clustered in dense areas for better readability.
  */
 export function PlacemarkMarkers({ placemarks }: PlacemarkMarkersProps) {
   const selectPlacemark = useViewStore((state) => state.selectPlacemark);
 
   return (
-    <>
+    <MarkerClusterGroup
+      chunkedLoading
+      maxClusterRadius={60}
+      spiderfyOnMaxZoom={true}
+      showCoverageOnHover={false}
+      zoomToBoundsOnClick={true}
+    >
       {placemarks.map((placemark) => {
         const coords = parsePointGeometry(placemark.geometry);
         if (!coords) {
@@ -64,6 +72,6 @@ export function PlacemarkMarkers({ placemarks }: PlacemarkMarkersProps) {
           </Marker>
         );
       })}
-    </>
+    </MarkerClusterGroup>
   );
 }

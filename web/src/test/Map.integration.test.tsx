@@ -58,6 +58,13 @@ vi.mock('react-leaflet', () => ({
   ),
 }));
 
+// Mock react-leaflet-markercluster
+vi.mock('react-leaflet-markercluster', () => ({
+  default: ({ children }: { children?: React.ReactNode }) => (
+    <div data-testid="mock-marker-cluster-group">{children}</div>
+  ),
+}));
+
 // Mock leaflet
 vi.mock('leaflet', () => ({
   default: {
