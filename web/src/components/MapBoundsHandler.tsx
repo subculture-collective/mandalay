@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useMap, useMapEvents } from 'react-leaflet';
 import type { BBox } from '../types/api';
 
@@ -13,21 +13,18 @@ interface MapBoundsHandlerProps {
  */
 export function MapBoundsHandler({ onBoundsChange }: MapBoundsHandlerProps) {
   const map = useMap();
-  const hasInitialized = useRef(false);
 
   // Report initial bounds on mount
   useEffect(() => {
-    if (!hasInitialized.current) {
-      const bounds = map.getBounds();
-      onBoundsChange({
-        min_lon: bounds.getWest(),
-        min_lat: bounds.getSouth(),
-        max_lon: bounds.getEast(),
-        max_lat: bounds.getNorth(),
-      });
-      hasInitialized.current = true;
-    }
-  }, [map, onBoundsChange]);
+    const bounds = map.getBounds();
+    onBoundsChange({
+      min_lon: bounds.getWest(),
+      min_lat: bounds.getSouth(),
+      max_lon: bounds.getEast(),
+      max_lat: bounds.getNorth(),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
 
   // Listen for map movement events
   useMapEvents({

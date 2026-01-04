@@ -7,12 +7,12 @@ interface PlacemarkMarkersProps {
 }
 
 /**
- * Extract lat/lon coordinates from WKT geometry string.
- * Currently supports POINT geometry type.
+ * Extract lat/lon coordinates from WKT POINT geometry string.
+ * Only supports POINT geometry type - other types will return null.
  * @param geometry - WKT geometry string (e.g., "POINT(-115.172281 36.094506)")
- * @returns [lat, lon] tuple or null if parsing fails
+ * @returns [lat, lon] tuple or null if parsing fails or geometry is not POINT
  */
-function parseGeometryCoordinates(geometry: string): [number, number] | null {
+function parsePointGeometry(geometry: string): [number, number] | null {
   // Match POINT(lon lat) format - note WKT uses lon/lat order
   const pointMatch = geometry.match(/POINT\(([^)]+)\)/i);
   if (pointMatch) {
@@ -38,7 +38,7 @@ export function PlacemarkMarkers({ placemarks }: PlacemarkMarkersProps) {
   return (
     <>
       {placemarks.map((placemark) => {
-        const coords = parseGeometryCoordinates(placemark.geometry);
+        const coords = parsePointGeometry(placemark.geometry);
         if (!coords) {
           return null;
         }
