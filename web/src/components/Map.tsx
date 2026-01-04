@@ -1,6 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import type { LatLngExpression } from 'leaflet';
+import { MapBoundsHandler } from './MapBoundsHandler';
+import { PlacemarkMarkers } from './PlacemarkMarkers';
+import { usePlacemarksBBox } from '../lib/usePlacemarksBBox';
+import type { BBox } from '../types/api';
 
 // Fix for default marker icon in webpack/vite
 // NOTE: This modifies the global Leaflet.Marker.prototype.options.icon at module load time.
@@ -37,6 +41,19 @@ function MapResizer() {
   return null;
 }
 
+// Component to handle placemark fetching and rendering
+function PlacemarksLayer() {
+  const [bbox, setBbox] = useState<BBox | null>(null);
+  const { data } = usePlacemarksBBox(bbox);
+
+  return (
+    <>
+      <MapBoundsHandler onBoundsChange={setBbox} />
+      {data?.placemarks && <PlacemarkMarkers placemarks={data.placemarks} />}
+    </>
+  );
+}
+
 export function Map({ 
   center = [36.1699, -115.1398], // Default: Las Vegas
   zoom = 13, 
@@ -65,6 +82,7 @@ export function Map({
           url={finalTileUrl}
           attribution={attribution}
         />
+        <PlacemarksLayer />
       </MapContainer>
     </div>
   );
