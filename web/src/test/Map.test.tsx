@@ -75,12 +75,21 @@ describe('Map Component', () => {
     expect(tileLayer).toHaveAttribute('data-attribution', 'Custom Map Provider');
   });
 
-  it('appends API key to tile URL when provided', () => {
+  it('appends API key to tile URL when provided (uses default parameter name)', () => {
     vi.stubEnv('VITE_MAP_TILE_URL', 'https://tiles.example.com/{z}/{x}/{y}.png');
     vi.stubEnv('VITE_MAP_API_KEY', 'test-api-key-123');
+    // Not setting VITE_MAP_API_KEY_PARAM - should default to 'apikey'
     render(<Map />);
     const tileLayer = screen.getByTestId('mock-tile-layer');
     expect(tileLayer).toHaveAttribute('data-url', 'https://tiles.example.com/{z}/{x}/{y}.png?apikey=test-api-key-123');
+  });
+
+  it('uses & separator when tile URL already contains query parameters', () => {
+    vi.stubEnv('VITE_MAP_TILE_URL', 'https://tiles.example.com/{z}/{x}/{y}.png?style=basic');
+    vi.stubEnv('VITE_MAP_API_KEY', 'test-key');
+    render(<Map />);
+    const tileLayer = screen.getByTestId('mock-tile-layer');
+    expect(tileLayer).toHaveAttribute('data-url', 'https://tiles.example.com/{z}/{x}/{y}.png?style=basic&apikey=test-key');
   });
 
   it('uses custom API key parameter name when provided', () => {

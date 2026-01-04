@@ -3,6 +3,9 @@ import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import type { LatLngExpression } from 'leaflet';
 
 // Fix for default marker icon in webpack/vite
+// NOTE: This modifies the global Leaflet.Marker.prototype.options.icon at module load time.
+// All markers across the application will use this icon configuration.
+// This is a standard workaround for Vite/webpack builds where Leaflet's default icon paths don't resolve correctly.
 import L from 'leaflet';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
@@ -46,7 +49,8 @@ export function Map({
   const apiKeyParam = import.meta.env.VITE_MAP_API_KEY_PARAM || 'apikey';
 
   // Append API key to tile URL if provided
-  const finalTileUrl = apiKey ? `${tileUrl}?${apiKeyParam}=${apiKey}` : tileUrl;
+  const separator = tileUrl.includes('?') ? '&' : '?';
+  const finalTileUrl = apiKey ? `${tileUrl}${separator}${apiKeyParam}=${apiKey}` : tileUrl;
 
   return (
     <div className={className} data-testid="map-container">
