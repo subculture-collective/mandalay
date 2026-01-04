@@ -28,6 +28,7 @@ export function Timeline() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const listRef = useRef<VariableSizeList>(null);
+  // Use placemark_id as key for stable height caching across filter changes
   const itemHeightsRef = useRef<Map<number, number>>(new Map());
   
   // Use shared selection state from store
@@ -134,27 +135,44 @@ export function Timeline() {
         listRef.current.scrollToItem(selectedIndex, 'smart');
       }
     }
-  }, [selectedPlacemarkId, filteredEvents]);
+  }, [selectedPlacemarkId]);
 
   // Get item size with caching for better performance
-  const getItemSize = useCallback((index: number) => {
-    const cachedHeight = itemHeightsRef.current.get(index);
-    return cachedHeight ?? ESTIMATED_ITEM_HEIGHT;
-  }, []);
+  // Cache by placemark_id for stability across filter changes
+  const getItemSize = useCallback(
+    (index: number) => {
+      const event = filteredEvents[index];
+      if (!event) {
+        return ESTIMATED_ITEM_HEIGHT;
+      }
+
+      const cachedHeight = itemHeightsRef.current.get(event.placemark_id);
+      return cachedHeight ?? ESTIMATED_ITEM_HEIGHT;
+    },
+    [filteredEvents]
+  );
 
   // Set item height after rendering
-  const setItemHeight = useCallback((index: number, size: number) => {
-    if (itemHeightsRef.current.get(index) !== size) {
-      itemHeightsRef.current.set(index, size);
-      listRef.current?.resetAfterIndex(index);
-    }
-  }, []);
+  const setItemHeight = useCallback(
+    (index: number, size: number) => {
+      const event = filteredEvents[index];
+      if (!event) {
+        return;
+      }
 
-  // Clear height cache when filtered events change
+      const key = event.placemark_id;
+      if (itemHeightsRef.current.get(key) !== size) {
+        itemHeightsRef.current.set(key, size);
+        listRef.current?.resetAfterIndex(index);
+      }
+    },
+    [filteredEvents]
+  );
+
+  // Recalculate list layout when filtered events change, but keep height cache
   useEffect(() => {
-    itemHeightsRef.current.clear();
     listRef.current?.resetAfterIndex(0);
-  }, [filteredEvents]);
+  }, [filteredEvents.length]);
 
   if (loading) {
     return (
@@ -208,18 +226,26 @@ export function Timeline() {
                 height={getListHeight()}
                 itemCount={filteredEvents.length}
                 itemSize={getItemSize}
-                itemKey={(index: number) => filteredEvents[index].placemark_id}
+                itemKey={(index: number) => filteredEvents[index]?.placemark_id ?? index}
                 width="100%"
                 overscanCount={3}
               >
                 {({ index, style }: { index: number; style: React.CSSProperties }) => {
                   const event = filteredEvents[index];
+                  // Handle both number and string types for style properties
+                  const heightValue =
+                    typeof style.height === 'number'
+                      ? style.height
+                      : parseFloat((style.height ?? '0') as string);
+                  
                   return (
                     <div 
+                      role="listitem"
+                      aria-setsize={filteredEvents.length}
+                      aria-posinset={index + 1}
                       style={{
                         ...style,
-                        top: `${parseFloat(style.top as string) + index * ITEM_GAP}px`,
-                        height: `${parseFloat(style.height as string) - ITEM_GAP}px`,
+                        height: heightValue - ITEM_GAP,
                       }}
                     >
                       <TimelineItem
@@ -233,7 +259,7 @@ export function Timeline() {
                 }}
               </VariableSizeList>
             ) : (
-              <div className="text-center py-12 text-gray-500">
+              <div className="text-center py-12 text-gray-500" role="status" aria-live="polite">
                 No events match the current filters
               </div>
             )}

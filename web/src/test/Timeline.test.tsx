@@ -336,14 +336,6 @@ describe('Timeline - Selection and Detail Fetch Integration', () => {
     vi.mocked(fetchTimelineEvents).mockResolvedValueOnce(mockTimelineEvents);
     vi.mocked(fetchPlacemark).mockResolvedValueOnce(mockPlacemarkDetail1);
 
-    // Mock the VariableSizeList ref
-    vi.mock('react-window', async () => {
-      const actual = await vi.importActual('react-window');
-      return {
-        ...actual,
-      };
-    });
-
     render(<Timeline />, { wrapper });
 
     // Wait for events to load

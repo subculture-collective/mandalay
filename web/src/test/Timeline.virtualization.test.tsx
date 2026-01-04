@@ -65,15 +65,22 @@ describe('Timeline - Virtualization Performance', () => {
 
   // Helper to generate many mock timeline events
   const generateMockEvents = (count: number): TimelineEvent[] => {
-    return Array.from({ length: count }, (_, i) => ({
-      timestamp: `2017-10-01T21:${String(i).padStart(2, '0')}:00Z`,
-      name: `Event ${i + 1}`,
-      description: `Description for event ${i + 1}`,
-      location: { lat: 36.094506 + i * 0.001, lon: -115.172281 + i * 0.001 },
-      media_links: [],
-      placemark_id: i + 1,
-      folder_path: ['Folder 1'],
-    }));
+    return Array.from({ length: count }, (_, i) => {
+      const totalSeconds = i;
+      const hours = Math.floor(totalSeconds / 3600) % 24;
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      return {
+        timestamp: `2017-10-01T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}Z`,
+        name: `Event ${i + 1}`,
+        description: `Description for event ${i + 1}`,
+        location: { lat: 36.094506 + i * 0.001, lon: -115.172281 + i * 0.001 },
+        media_links: [],
+        placemark_id: i + 1,
+        folder_path: ['Folder 1'],
+      };
+    });
   };
 
   it('virtualizes large lists to reduce DOM nodes', async () => {
