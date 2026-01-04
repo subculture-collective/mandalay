@@ -10,6 +10,11 @@ interface PlacemarkDetailProps {
  * Returns null if coordinates cannot be extracted
  */
 function extractLatLon(geometry: GeoJSONGeometry): { lat: number; lon: number } | null {
+  // Only extract coordinates from Point geometries
+  if (geometry.type !== 'Point') {
+    return null;
+  }
+  
   const coords = geometry.coordinates;
   
   // Handle Point geometry: [lon, lat]
