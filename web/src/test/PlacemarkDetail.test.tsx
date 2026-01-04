@@ -300,6 +300,10 @@ describe('PlacemarkDetail', () => {
     expect(links).toHaveLength(2);
     expect(links[0]).toHaveAttribute('href', 'https://safe.com/video.mp4');
     expect(links[1]).toHaveAttribute('href', 'http://also-safe.com/image.jpg');
+    
+    // Should have sequential numbering (1, 2) not (1, 4)
+    expect(screen.getByText(/Media 1/)).toBeInTheDocument();
+    expect(screen.getByText(/Media 2/)).toBeInTheDocument();
   });
 
   it('filters out invalid URLs in media links', () => {
@@ -319,5 +323,9 @@ describe('PlacemarkDetail', () => {
     expect(links).toHaveLength(2);
     expect(links[0]).toHaveAttribute('href', 'https://valid.com/video.mp4');
     expect(links[1]).toHaveAttribute('href', 'https://another-valid.com/image.jpg');
+    
+    // Should have sequential numbering (1, 2) not (1, 4)
+    expect(screen.getByText(/Media 1/)).toBeInTheDocument();
+    expect(screen.getByText(/Media 2/)).toBeInTheDocument();
   });
 });

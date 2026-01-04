@@ -238,35 +238,40 @@ export function PlacemarkDetail({ detail }: PlacemarkDetailProps) {
         <div>
           <h3 className="font-medium text-gray-700 mb-2">Media</h3>
           <div className="space-y-2">
-            {detail.media_links.map((link: string, idx: number) => {
-              // Validate URL and ensure it uses safe protocols
-              let url: URL;
-              try {
-                url = new URL(link);
-              } catch {
-                // Skip invalid URLs
-                return null;
-              }
+            {detail.media_links
+              .map((link: string, idx: number) => {
+                // Validate URL and ensure it uses safe protocols
+                let url: URL;
+                try {
+                  url = new URL(link);
+                } catch {
+                  // Skip invalid URLs
+                  return null;
+                }
 
-              if (!/^https?:$/i.test(url.protocol)) {
-                // Skip URLs with unsafe protocols
-                return null;
-              }
+                if (!/^https?:$/i.test(url.protocol)) {
+                  // Skip URLs with unsafe protocols
+                  return null;
+                }
 
-              const safeHref = url.toString();
-
-              return (
+                return {
+                  safeHref: url.toString(),
+                  originalLink: link,
+                  originalIndex: idx,
+                };
+              })
+              .filter((item): item is { safeHref: string; originalLink: string; originalIndex: number } => item !== null)
+              .map((item, displayIndex) => (
                 <a
-                  key={`${link}-${idx}`}
-                  href={safeHref}
+                  key={`media-${item.originalIndex}`}
+                  href={item.safeHref}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block text-sm text-blue-600 hover:text-blue-800 hover:underline"
                 >
-                  {link.includes('youtube') ? 'YouTube Video' : 'Media'} {idx + 1}
+                  {item.originalLink.includes('youtube') ? 'YouTube Video' : 'Media'} {displayIndex + 1}
                 </a>
-              );
-            })}
+              ))}
           </div>
         </div>
       )}
