@@ -6,6 +6,11 @@ import { Map } from '../components/Map';
 import { useViewStore } from '../lib/store';
 import type { BBoxResponse } from '../types/api';
 
+// Mock the MapFlyToHandler
+vi.mock('../components/MapFlyToHandler', () => ({
+  MapFlyToHandler: () => null,
+}));
+
 // Mock the API
 vi.mock('../lib/api', () => ({
   fetchPlacemarksBBox: vi.fn(),
@@ -27,6 +32,10 @@ vi.mock('react-leaflet', () => ({
       getEast: () => -115.1,
       getNorth: () => 36.1,
     })),
+    getZoom: vi.fn(() => 13),
+    getSize: vi.fn(() => ({ x: 800, y: 600 })),
+    latLngToContainerPoint: vi.fn(() => ({ x: 400, y: 300 })),
+    flyTo: vi.fn(),
   }),
   useMapEvents: (events: { moveend?: () => void }) => {
     // Store the moveend handler for later use
@@ -69,6 +78,7 @@ vi.mock('react-leaflet-markercluster', () => ({
 vi.mock('leaflet', () => ({
   default: {
     icon: vi.fn(() => ({})),
+    divIcon: vi.fn(() => ({})),
     Marker: {
       prototype: {
         options: {},
