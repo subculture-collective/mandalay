@@ -83,6 +83,15 @@ describe('Map Component', () => {
     expect(tileLayer).toHaveAttribute('data-url', 'https://tiles.example.com/{z}/{x}/{y}.png?apikey=test-api-key-123');
   });
 
+  it('uses custom API key parameter name when provided', () => {
+    vi.stubEnv('VITE_MAP_TILE_URL', 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}');
+    vi.stubEnv('VITE_MAP_API_KEY', 'pk.test123');
+    vi.stubEnv('VITE_MAP_API_KEY_PARAM', 'access_token');
+    render(<Map />);
+    const tileLayer = screen.getByTestId('mock-tile-layer');
+    expect(tileLayer).toHaveAttribute('data-url', 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.test123');
+  });
+
   it('uses default center (Las Vegas) when not provided', () => {
     render(<Map />);
     const mapContainer = screen.getByTestId('mock-map-container');
