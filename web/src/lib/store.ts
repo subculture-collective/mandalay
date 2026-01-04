@@ -49,6 +49,8 @@ interface ViewActions {
   setTimeRange: (start: string | null, end: string | null) => void;
   /** Set whether to include events with null timestamps when time range filter is active */
   setIncludeNullTimestamps: (include: boolean) => void;
+  /** Reset all filter states to their default values */
+  resetFilters: () => void;
 }
 
 /**
@@ -107,6 +109,13 @@ export const useViewStore = create<ViewStore>((set) => ({
   setSearchText: (text) => set({ searchText: text }),
   setTimeRange: (start, end) => set({ timeRangeStart: start, timeRangeEnd: end }),
   setIncludeNullTimestamps: (include) => set({ includeNullTimestamps: include }),
+  resetFilters: () => set({ 
+    selectedFolder: null, 
+    searchText: '', 
+    timeRangeStart: null, 
+    timeRangeEnd: null,
+    includeNullTimestamps: true,
+  }),
 }));
 
 // Selectors for convenient access
