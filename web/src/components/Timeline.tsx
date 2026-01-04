@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { VariableSizeList } from 'react-window';
 import type { TimelineEvent } from '../types/api';
 import { fetchTimelineEvents } from '../lib/api';
 import { TimelineItem } from './TimelineItem';
@@ -9,10 +10,16 @@ import { FilterResetButton } from './FilterResetButton';
 import { useViewStore } from '../lib/store';
 import { usePlacemarkDetail } from '../lib/usePlacemarkDetail';
 
+// Estimated item height for virtualization
+const ESTIMATED_ITEM_HEIGHT = 120;
+const ITEM_GAP = 16; // 1rem gap between items
+
 export function Timeline() {
   const [events, setEvents] = useState<TimelineEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const listRef = useRef<VariableSizeList>(null);
+  const itemHeightsRef = useRef<Map<number, number>>(new Map());
   
   // Use shared selection state from store
   const { selectedPlacemarkId, selectPlacemark, selectedFolder, searchText, timeRangeStart, timeRangeEnd, includeNullTimestamps } = useViewStore();
@@ -108,6 +115,38 @@ export function Timeline() {
     selectPlacemark(event.placemark_id);
   };
 
+  // Scroll to selected item when selection changes
+  useEffect(() => {
+    if (selectedPlacemarkId !== null && listRef.current) {
+      const selectedIndex = filteredEvents.findIndex(
+        (event) => event.placemark_id === selectedPlacemarkId
+      );
+      if (selectedIndex !== -1) {
+        listRef.current.scrollToItem(selectedIndex, 'smart');
+      }
+    }
+  }, [selectedPlacemarkId, filteredEvents]);
+
+  // Get item size with caching for better performance
+  const getItemSize = useCallback((index: number) => {
+    const cachedHeight = itemHeightsRef.current.get(index);
+    return cachedHeight ?? ESTIMATED_ITEM_HEIGHT;
+  }, []);
+
+  // Set item height after rendering
+  const setItemHeight = useCallback((index: number, size: number) => {
+    if (itemHeightsRef.current.get(index) !== size) {
+      itemHeightsRef.current.set(index, size);
+      listRef.current?.resetAfterIndex(index);
+    }
+  }, []);
+
+  // Clear height cache when filtered events change
+  useEffect(() => {
+    itemHeightsRef.current.clear();
+    listRef.current?.resetAfterIndex(0);
+  }, [filteredEvents]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -153,15 +192,42 @@ export function Timeline() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Timeline Events */}
-          <div className="lg:col-span-2 space-y-4">
-            {filteredEvents.map((event) => (
-              <TimelineItem
-                key={event.placemark_id}
-                event={event}
-                onClick={() => handleEventClick(event)}
-                isSelected={event.placemark_id === selectedPlacemarkId}
-              />
-            ))}
+          <div className="lg:col-span-2">
+            {filteredEvents.length > 0 ? (
+              <VariableSizeList
+                ref={listRef}
+                height={Math.max(window.innerHeight - 300, 600)} // Minimum 600px for tests
+                itemCount={filteredEvents.length}
+                itemSize={getItemSize}
+                itemKey={(index: number) => filteredEvents[index].placemark_id}
+                width="100%"
+                overscanCount={3}
+              >
+                {({ index, style }: { index: number; style: React.CSSProperties }) => {
+                  const event = filteredEvents[index];
+                  return (
+                    <div 
+                      style={{
+                        ...style,
+                        top: `${parseFloat(style.top as string) + index * ITEM_GAP}px`,
+                        height: `${parseFloat(style.height as string) - ITEM_GAP}px`,
+                      }}
+                    >
+                      <TimelineItem
+                        event={event}
+                        onClick={() => handleEventClick(event)}
+                        isSelected={event.placemark_id === selectedPlacemarkId}
+                        onHeightChange={(height) => setItemHeight(index, height + ITEM_GAP)}
+                      />
+                    </div>
+                  );
+                }}
+              </VariableSizeList>
+            ) : (
+              <div className="text-center py-12 text-gray-500">
+                No events match the current filters
+              </div>
+            )}
           </div>
 
           {/* Detail Panel */}

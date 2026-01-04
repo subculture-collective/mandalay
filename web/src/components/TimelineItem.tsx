@@ -5,9 +5,10 @@ interface TimelineItemProps {
   event: TimelineEvent;
   onClick: () => void;
   isSelected?: boolean;
+  onHeightChange?: (height: number) => void;
 }
 
-export function TimelineItem({ event, onClick, isSelected = false }: TimelineItemProps) {
+export function TimelineItem({ event, onClick, isSelected = false, onHeightChange }: TimelineItemProps) {
   const itemRef = useRef<HTMLDivElement>(null);
   const parsedTime = event.timestamp ? new Date(event.timestamp) : null;
   const timeDisplay = parsedTime?.toLocaleTimeString('en-US', {
@@ -16,16 +17,40 @@ export function TimelineItem({ event, onClick, isSelected = false }: TimelineIte
     second: '2-digit',
   });
 
-  // Auto-scroll into view when selected
+  // Report height changes for virtualization
   useEffect(() => {
-    if (isSelected && itemRef.current && typeof itemRef.current.scrollIntoView === 'function') {
+    if (onHeightChange && itemRef.current) {
+      // Only use ResizeObserver if available (not in all test environments)
+      if (typeof ResizeObserver !== 'undefined') {
+        const resizeObserver = new ResizeObserver((entries) => {
+          for (const entry of entries) {
+            onHeightChange(entry.contentRect.height);
+          }
+        });
+        
+        resizeObserver.observe(itemRef.current);
+        
+        return () => {
+          resizeObserver.disconnect();
+        };
+      } else {
+        // Fallback: report height once on mount
+        onHeightChange(itemRef.current.offsetHeight);
+      }
+    }
+  }, [onHeightChange]);
+
+  // Note: scrollIntoView is now handled by the virtualized list's scrollToItem
+  // Keeping this for backwards compatibility when not virtualized
+  useEffect(() => {
+    if (isSelected && itemRef.current && !onHeightChange && typeof itemRef.current.scrollIntoView === 'function') {
       itemRef.current.scrollIntoView({
         behavior: 'smooth',
         block: 'nearest',
         inline: 'nearest',
       });
     }
-  }, [isSelected]);
+  }, [isSelected, onHeightChange]);
 
   return (
     <div
