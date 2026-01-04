@@ -75,7 +75,7 @@ export function MapFlyToHandler({
     // Only fly if marker is outside viewport padding (avoid jitter)
     if (!isInViewport) {
       const currentZoom = map.getZoom();
-      const targetZoom = Math.min(currentZoom < maxZoom ? maxZoom : currentZoom, maxZoom);
+      const targetZoom = Math.max(currentZoom, maxZoom);
       
       map.flyTo([lat, lon] as LatLngExpression, targetZoom, {
         duration,

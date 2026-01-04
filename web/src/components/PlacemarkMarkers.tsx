@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Marker, Popup } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-markercluster';
 import { useViewStore } from '../lib/store';
@@ -42,6 +43,18 @@ export function PlacemarkMarkers({ placemarks, onCoordinatesMap }: PlacemarkMark
   const selectPlacemark = useViewStore((state) => state.selectPlacemark);
   const selectedPlacemarkId = useViewStore((state) => state.selectedPlacemarkId);
 
+  // Parse and map coordinates after render to avoid side effects during render phase
+  useEffect(() => {
+    if (onCoordinatesMap) {
+      placemarks.forEach((placemark) => {
+        const coords = parsePointGeometry(placemark.geometry);
+        if (coords) {
+          onCoordinatesMap(placemark.id, coords);
+        }
+      });
+    }
+  }, [placemarks, onCoordinatesMap]);
+
   return (
     <MarkerClusterGroup
       chunkedLoading // Load markers in chunks to improve performance with large datasets
@@ -54,11 +67,6 @@ export function PlacemarkMarkers({ placemarks, onCoordinatesMap }: PlacemarkMark
         const coords = parsePointGeometry(placemark.geometry);
         if (!coords) {
           return null;
-        }
-
-        // Notify parent about coordinates for fly-to functionality
-        if (onCoordinatesMap) {
-          onCoordinatesMap(placemark.id, coords);
         }
 
         const isSelected = placemark.id === selectedPlacemarkId;

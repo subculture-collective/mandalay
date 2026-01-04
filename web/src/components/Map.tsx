@@ -48,7 +48,7 @@ export const SelectedIcon = L.divIcon({
     </div>
   `,
   iconSize: [35, 35],
-  iconAnchor: [17.5, 35],
+  iconAnchor: [17.5, 17.5],
 });
 
 // Export the default icon for use in PlacemarkMarkers
@@ -89,6 +89,28 @@ function PlacemarksLayer() {
   const getCoordinates = useCallback((placemarkId: number) => {
     return coordinatesMapRef.current.get(placemarkId) || null;
   }, []);
+
+  // Keep coordinatesMapRef in sync with the current placemarks to avoid
+  // accumulating stale entries when placemarks are added/removed over time.
+  useEffect(() => {
+    const coordinatesMap = coordinatesMapRef.current;
+
+    const placemarks = data?.placemarks;
+    if (!placemarks || placemarks.length === 0) {
+      if (coordinatesMap.size > 0) {
+        coordinatesMap.clear();
+      }
+      return;
+    }
+
+    const validIds = new Set<number>(placemarks.map((p) => p.id));
+
+    for (const id of Array.from(coordinatesMap.keys())) {
+      if (!validIds.has(id)) {
+        coordinatesMap.delete(id);
+      }
+    }
+  }, [data]);
 
   return (
     <>
