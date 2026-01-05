@@ -5,6 +5,7 @@ import { MapBoundsHandler } from './MapBoundsHandler';
 import { MapFlyToHandler } from './MapFlyToHandler';
 import { PlacemarkMarkers } from './PlacemarkMarkers';
 import { usePlacemarksBBox } from '../lib/usePlacemarksBBox';
+import { MapSkeleton } from './skeletons';
 import type { BBox } from '../types/api';
 
 // Fix for default marker icon in webpack/vite
@@ -77,7 +78,7 @@ function MapResizer() {
 // Component to handle placemark fetching and rendering
 function PlacemarksLayer() {
   const [bbox, setBbox] = useState<BBox | null>(null);
-  const { data } = usePlacemarksBBox(bbox);
+  const { data, isLoading } = usePlacemarksBBox(bbox);
   
   // Store coordinates map for fly-to functionality
   const coordinatesMapRef = useRef<Map<number, [number, number]>>(new Map());
@@ -116,6 +117,7 @@ function PlacemarksLayer() {
     <>
       <MapBoundsHandler onBoundsChange={setBbox} />
       <MapFlyToHandler getCoordinates={getCoordinates} />
+      {isLoading && <MapSkeleton />}
       {data?.placemarks && (
         <PlacemarkMarkers 
           placemarks={data.placemarks} 
