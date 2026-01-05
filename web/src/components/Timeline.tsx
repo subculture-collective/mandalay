@@ -179,7 +179,7 @@ export function Timeline() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Timeline skeleton */}
-            <div className="lg:col-span-2 space-y-4" role="status" aria-label="Loading timeline">
+            <div className="lg:col-span-2 space-y-4">
               {Array.from({ length: 5 }).map((_, index) => (
                 <TimelineItemSkeleton key={index} />
               ))}
