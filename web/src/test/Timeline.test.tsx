@@ -100,13 +100,18 @@ describe('Timeline - Selection and Detail Fetch Integration', () => {
 
     render(<Timeline />, { wrapper });
 
-    // Should show loading spinner
-    expect(screen.getByText(/Loading timeline events/i)).toBeInTheDocument();
+    // Should show loading skeletons
+    expect(screen.getByText(/Loading events/i)).toBeInTheDocument();
+    const skeletons = screen.getAllByTestId('timeline-item-skeleton');
+    expect(skeletons.length).toBeGreaterThan(0);
 
     // Wait for events to load
     await waitFor(() => {
       expect(screen.getAllByText('Event 1')).toHaveLength(1);
     });
+    
+    // Skeletons should be gone
+    expect(screen.queryByTestId('timeline-item-skeleton')).not.toBeInTheDocument();
   });
 
   it('fetches and displays placemark detail when an event is selected', async () => {

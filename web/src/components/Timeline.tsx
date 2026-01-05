@@ -10,6 +10,7 @@ import { FilterResetButton } from './FilterResetButton';
 import { useViewStore } from '../lib/store';
 import { usePlacemarkDetail } from '../lib/usePlacemarkDetail';
 import { PlacemarkDetail } from './PlacemarkDetail';
+import { TimelineItemSkeleton, DetailSkeleton } from './skeletons';
 
 // Estimated item height for virtualization
 const ESTIMATED_ITEM_HEIGHT = 120;
@@ -169,10 +170,28 @@ export function Timeline() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-          <p className="mt-4 text-gray-600">Loading timeline events...</p>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <header className="mb-6">
+            <h1 className="text-3xl font-bold text-gray-900">Vegas Shooting Timeline</h1>
+            <p className="mt-2 text-gray-600">Loading events...</p>
+          </header>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Timeline skeleton */}
+            <div className="lg:col-span-2 space-y-4" role="status" aria-label="Loading timeline">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <TimelineItemSkeleton key={index} />
+              ))}
+            </div>
+
+            {/* Detail panel placeholder */}
+            <div className="lg:col-span-1">
+              <div className="sticky top-4 bg-white rounded-lg shadow-lg p-6 text-center text-gray-500">
+                Select an event to view details
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -265,17 +284,7 @@ export function Timeline() {
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Event Details</h2>
                 
                 {detailLoading ? (
-                  <div className="space-y-4" role="status" aria-label="Loading event details">
-                    {/* Loading skeleton */}
-                    <div className="animate-pulse">
-                      <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-                      <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
-                      <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-                      <div className="h-6 bg-gray-200 rounded w-1/2 mb-4"></div>
-                      <div className="h-4 bg-gray-200 rounded w-1/4 mb-2"></div>
-                      <div className="h-20 bg-gray-200 rounded mb-4"></div>
-                    </div>
-                  </div>
+                  <DetailSkeleton />
                 ) : detailError ? (
                   <div className="py-4">
                     <div className="bg-red-50 border border-red-200 rounded-lg p-4">
