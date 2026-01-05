@@ -119,18 +119,8 @@ function PlacemarksLayer() {
       <MapFlyToHandler getCoordinates={getCoordinates} />
       {isLoading && <MapSkeleton />}
       {isError && (
-        <div 
-          style={{
-            position: 'absolute',
-            top: '10px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 1000,
-            maxWidth: '90%',
-            width: '400px'
-          }}
-        >
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 shadow-lg">
+        <div className="absolute top-2.5 left-1/2 -translate-x-1/2 z-[1000] max-w-[90%] w-[400px]">
+          <div role="alert" className="bg-red-50 border border-red-200 rounded-lg p-4 shadow-lg">
             <div className="flex items-start">
               <svg className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -142,6 +132,7 @@ function PlacemarksLayer() {
                 </p>
                 <button
                   onClick={() => refetch()}
+                  aria-label="Retry loading map markers"
                   className="mt-3 inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                 >
                   <svg className="h-3 w-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">

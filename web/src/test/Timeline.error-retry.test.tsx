@@ -157,7 +157,7 @@ describe('Timeline - Error Handling and Retry', () => {
 
     // Wait for success - error should be gone
     await waitFor(() => {
-      expect(screen.queryByText('Error Loading Timeline')).not.toBeInTheDocument();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     });
 
     // Check that normal UI is rendered
@@ -194,7 +194,7 @@ describe('Timeline - Error Handling and Retry', () => {
 
     // Wait for success
     await waitFor(() => {
-      expect(screen.queryByText(/Error/)).not.toBeInTheDocument();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
       expect(screen.getByText('Event 1')).toBeInTheDocument();
     });
 

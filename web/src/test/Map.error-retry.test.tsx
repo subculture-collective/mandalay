@@ -76,7 +76,7 @@ describe('Map - Error Handling and Retry (Hook Level)', () => {
       () => {
         expect(result.current.isError).toBe(true);
       },
-      { timeout: 3000 }
+      { timeout: 1000 }
     );
 
     // Check error details
@@ -98,7 +98,7 @@ describe('Map - Error Handling and Retry (Hook Level)', () => {
       () => {
         expect(result.current.isError).toBe(true);
       },
-      { timeout: 3000 }
+      { timeout: 1000 }
     );
 
     // Verify refetch function exists
@@ -113,7 +113,7 @@ describe('Map - Error Handling and Retry (Hook Level)', () => {
         expect(result.current.isError).toBe(false);
         expect(result.current.data).toBeDefined();
       },
-      { timeout: 3000 }
+      { timeout: 1000 }
     );
 
     // Check that data is loaded after retry
@@ -133,7 +133,7 @@ describe('Map - Error Handling and Retry (Hook Level)', () => {
       () => {
         expect(result.current.isError).toBe(true);
       },
-      { timeout: 3000 }
+      { timeout: 1000 }
     );
 
     expect(result.current.error?.message).toBe('Network error');
@@ -146,7 +146,7 @@ describe('Map - Error Handling and Retry (Hook Level)', () => {
       () => {
         expect(result.current.isError).toBe(false);
       },
-      { timeout: 3000 }
+      { timeout: 1000 }
     );
 
     expect(result.current.error).toBeNull();
@@ -168,7 +168,7 @@ describe('Map - Error Handling and Retry (Hook Level)', () => {
         expect(result.current.isError).toBe(true);
         expect(result.current.error?.message).toBe('Error 1');
       },
-      { timeout: 3000 }
+      { timeout: 1000 }
     );
 
     // First retry
@@ -179,7 +179,7 @@ describe('Map - Error Handling and Retry (Hook Level)', () => {
       () => {
         expect(result.current.error?.message).toBe('Error 2');
       },
-      { timeout: 3000 }
+      { timeout: 1000 }
     );
 
     // Second retry
@@ -191,7 +191,7 @@ describe('Map - Error Handling and Retry (Hook Level)', () => {
         expect(result.current.isError).toBe(false);
         expect(result.current.data).toBeDefined();
       },
-      { timeout: 3000 }
+      { timeout: 1000 }
     );
 
     expect(result.current.data).toEqual(mockBBoxResponse);
@@ -222,7 +222,7 @@ describe('Map - Error Handling and Retry (Hook Level)', () => {
       () => {
         expect(result.current.isError).toBe(true);
       },
-      { timeout: 3000 }
+      { timeout: 1000 }
     );
 
     // Check that all expected properties are present

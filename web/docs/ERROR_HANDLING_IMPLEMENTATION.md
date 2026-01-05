@@ -69,8 +69,8 @@ const { data, isLoading, isError, error, refetch } = usePlacemarksBBox(bbox);
 ```
 
 ### 3. PlacemarkDetail Component
-**Status:** Already had proper error handling with retry functionality (lines 289-312).
-**No changes needed.**
+**Status:** Error handling and retry behavior for placemark details is implemented in the parent `Timeline` component (see `Timeline.tsx`, lines 287-311). The `PlacemarkDetail` component itself is a presentational component that displays the data passed to it.
+**No changes needed** to `PlacemarkDetail.tsx` itself; all error-handling behavior is driven by its parent container in `Timeline`.
 
 ## Testing
 
