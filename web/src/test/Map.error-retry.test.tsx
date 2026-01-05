@@ -24,13 +24,15 @@ const mockBBoxResponse: BBoxResponse = {
     {
       id: 1,
       name: 'Test Placemark',
-      coordinates: [-115.15, 36.05],
+      geometry_type: 'Point',
+      geometry: '{"type":"Point","coordinates":[-115.15,36.05]}',
       style_id: 'test-style',
       folder_path: ['Test Folder'],
+      created_at: '2024-01-01T00:00:00Z',
     },
   ],
   count: 1,
-  bbox_requested: mockBBox,
+  bbox: mockBBox,
 };
 
 describe('Map - Error Handling and Retry (Hook Level)', () => {
