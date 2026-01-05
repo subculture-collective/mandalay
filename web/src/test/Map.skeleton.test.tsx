@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
-import { MapContainer } from 'react-leaflet';
 import type { ReactNode } from 'react';
 import { MapSkeleton } from '../components/skeletons';
 
