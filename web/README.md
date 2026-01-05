@@ -15,6 +15,45 @@ The map uses `react-leaflet-markercluster` to automatically cluster markers in d
 
 Configuration can be adjusted in `src/components/PlacemarkMarkers.tsx`.
 
+## Testing
+
+The project uses **Vitest** with **React Testing Library** for component testing.
+
+### Running Tests
+
+```bash
+# Run all tests once (CI mode)
+npm test
+
+# Run tests in watch mode (development)
+npm run test:watch
+```
+
+### Test Configuration
+
+- **Test Runner**: Vitest 4.0.16
+- **Environment**: jsdom (simulates browser DOM)
+- **Testing Library**: @testing-library/react 16.3.1
+- **Matchers**: @testing-library/jest-dom 6.9.1
+- **User Interactions**: @testing-library/user-event 14.6.1
+
+Configuration: `vite.config.ts`  
+Setup File: `src/test/setup.ts`
+
+### Test Coverage
+
+The test suite includes:
+- **Store/State Tests**: Zustand store validation (`store.test.ts`)
+- **Component Tests**: UI component rendering and interaction tests
+- **Integration Tests**: Tests with React Query and state management integration
+- **Hook Tests**: Custom React hooks testing
+
+Sample test files:
+- `src/test/store.test.ts` - Selection store tests
+- `src/test/Timeline.test.tsx` - Timeline component with highlight tests
+- `src/test/PlacemarkMarkers.highlight.test.tsx` - Map marker selection tests
+- `src/test/PlacemarkDetail.test.tsx` - Detail panel rendering tests
+
 Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
