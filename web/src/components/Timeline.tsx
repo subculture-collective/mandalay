@@ -1,4 +1,4 @@
-import { useMemo, useRef, useCallback } from 'react';
+import { useMemo, useRef, useCallback, useEffect } from 'react';
 import { VariableSizeList } from 'react-window';
 import type { TimelineEvent } from '../types/api';
 import { useTimelineEvents } from '../lib/useTimelineEvents';
