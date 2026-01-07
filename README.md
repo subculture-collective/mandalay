@@ -92,6 +92,22 @@ SELECT name, ST_AsText(geom) FROM placemarks WHERE geometry_type = 'Point' LIMIT
 ✅ 44 styles loaded
 ✅ PostGIS spatial indexes created
 ✅ Docker containerized database
+✅ CI/CD pipeline with automated checks
+
+## CI/CD
+
+The project includes a GitHub Actions CI workflow that runs on pushes and pull requests to the main branch:
+
+**Frontend Checks:**
+- **Lint**: ESLint validation of React/TypeScript code
+- **Build**: TypeScript compilation and Vite production build
+- **Test**: Vitest unit and integration tests
+
+**Backend Checks:**
+- **Go Vet**: Static analysis of Go code
+- **Go Test**: Run all Go test suites
+
+All jobs run in parallel with dependency caching (npm and Go modules) for optimal performance.
 
 ## Next Steps
 
