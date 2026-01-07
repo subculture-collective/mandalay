@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useViewStore } from '../lib/store';
 
 /**
@@ -8,20 +8,26 @@ import { useViewStore } from '../lib/store';
 export function SearchFilter() {
   const { searchText, setSearchText } = useViewStore();
   const [inputValue, setInputValue] = useState(searchText);
+  const lastStoreSyncRef = useRef(searchText);
 
   // Debounce the search text update to the store
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       setSearchText(inputValue);
+      lastStoreSyncRef.current = inputValue;
     }, 300); // 300ms debounce delay
 
     return () => clearTimeout(timeoutId);
   }, [inputValue, setSearchText]);
 
-  // Sync input value with store when store changes externally
+  // When searchText is changed externally (e.g., reset button), sync the input
+  // Only sync if the change didn't originate from our debounce effect
   useEffect(() => {
-    if (searchText !== inputValue) {
+    if (searchText !== lastStoreSyncRef.current) {
+      // External change detected - sync input
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setInputValue(searchText);
+      lastStoreSyncRef.current = searchText;
     }
   }, [searchText]);
 

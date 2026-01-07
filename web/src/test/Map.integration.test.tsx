@@ -40,7 +40,7 @@ vi.mock('react-leaflet', () => ({
   useMapEvents: (events: { moveend?: () => void }) => {
     // Store the moveend handler for later use
     if (events.moveend) {
-      (globalThis as any).__mockMoveEndHandler = events.moveend;
+      (globalThis as typeof globalThis & { __mockMoveEndHandler?: () => void }).__mockMoveEndHandler = events.moveend;
     }
     return null;
   },
@@ -95,7 +95,7 @@ describe('Map Integration - Placemark Markers', () => {
     useViewStore.setState({ selectedPlacemarkId: null });
     vi.clearAllMocks();
     // Clear global mock handler
-    delete (globalThis as any).__mockMoveEndHandler;
+    delete (globalThis as typeof globalThis & { __mockMoveEndHandler?: () => void }).__mockMoveEndHandler;
   });
 
   it('fetches and renders placemarks for the initial map viewport', async () => {

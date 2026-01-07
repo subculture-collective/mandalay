@@ -91,6 +91,9 @@ describe('MapFlyToHandler', () => {
   });
 
   it('does not fly again when same placemark is selected', async () => {
+    // Mock marker outside viewport padding for initial selection
+    mockLatLngToContainerPoint.mockReturnValue({ x: 50, y: 50 });
+    
     render(<MapFlyToHandler getCoordinates={mockGetCoordinates} />);
     
     // Select a placemark
@@ -113,6 +116,9 @@ describe('MapFlyToHandler', () => {
   });
 
   it('flies to new marker when selection changes from one placemark to another', async () => {
+    // Mock first marker outside viewport padding
+    mockLatLngToContainerPoint.mockReturnValue({ x: 50, y: 50 });
+    
     render(<MapFlyToHandler getCoordinates={mockGetCoordinates} />);
     
     // Select first placemark
@@ -140,6 +146,9 @@ describe('MapFlyToHandler', () => {
   });
 
   it('respects maxZoom configuration', async () => {
+    // Mock marker outside viewport padding
+    mockLatLngToContainerPoint.mockReturnValue({ x: 50, y: 50 });
+    
     render(<MapFlyToHandler getCoordinates={mockGetCoordinates} maxZoom={15} />);
     
     // Mock current zoom higher than maxZoom
@@ -158,6 +167,9 @@ describe('MapFlyToHandler', () => {
   });
 
   it('zooms to maxZoom when current zoom is lower', async () => {
+    // Mock marker outside viewport padding
+    mockLatLngToContainerPoint.mockReturnValue({ x: 50, y: 50 });
+    
     render(<MapFlyToHandler getCoordinates={mockGetCoordinates} maxZoom={16} />);
     
     // Mock current zoom lower than maxZoom
@@ -191,6 +203,9 @@ describe('MapFlyToHandler', () => {
   });
 
   it('respects custom duration and viewportPadding', async () => {
+    // Mock marker outside viewport padding (150px custom padding)
+    mockLatLngToContainerPoint.mockReturnValue({ x: 50, y: 50 });
+    
     render(
       <MapFlyToHandler 
         getCoordinates={mockGetCoordinates}

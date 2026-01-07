@@ -474,7 +474,7 @@ describe('usePlacemarksBBox', () => {
       ({ bbox }: { bbox: BBox | null }) => usePlacemarksBBox(bbox),
       {
         wrapper,
-        initialProps: { bbox: null },
+        initialProps: { bbox: null as BBox | null },
       }
     );
 
@@ -506,7 +506,7 @@ describe('usePlacemarksBBox', () => {
       ({ bbox }: { bbox: BBox | null }) => usePlacemarksBBox(bbox),
       {
         wrapper,
-        initialProps: { bbox: mockBBox },
+        initialProps: { bbox: mockBBox as BBox | null },
       }
     );
 
