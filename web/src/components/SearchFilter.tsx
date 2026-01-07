@@ -18,12 +18,14 @@ export function SearchFilter() {
     return () => clearTimeout(timeoutId);
   }, [inputValue, setSearchText]);
 
-  // Sync input value with store when store changes externally
+  // When searchText is cleared externally (e.g., reset button), sync the input
+  // This only triggers when searchText becomes empty, avoiding cascading updates
   useEffect(() => {
-    if (searchText !== inputValue) {
-      setInputValue(searchText);
+    if (searchText === '' && inputValue !== '') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setInputValue('');
     }
-  }, [searchText]);
+  }, [searchText, inputValue]);
 
   const handleClear = () => {
     setInputValue('');

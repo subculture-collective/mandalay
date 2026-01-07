@@ -288,7 +288,7 @@ describe('usePlacemarkDetail', () => {
       ({ id }: { id: number | null }) => usePlacemarkDetail(id),
       {
         wrapper,
-        initialProps: { id: null },
+        initialProps: { id: null as number | null },
       }
     );
 
@@ -321,7 +321,7 @@ describe('usePlacemarkDetail', () => {
       ({ id }: { id: number | null }) => usePlacemarkDetail(id),
       {
         wrapper,
-        initialProps: { id: 123 },
+        initialProps: { id: 123 as number | null },
       }
     );
 

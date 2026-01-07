@@ -119,7 +119,7 @@ export function Timeline() {
         listRef.current.scrollToItem(selectedIndex, 'smart');
       }
     }
-  }, [selectedPlacemarkId]);
+  }, [selectedPlacemarkId, filteredEvents]);
 
   // Get item size with caching for better performance
   // Cache by placemark_id for stability across filter changes
