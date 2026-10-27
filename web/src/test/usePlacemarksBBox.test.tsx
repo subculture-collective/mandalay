@@ -470,7 +470,10 @@ describe('usePlacemarksBBox', () => {
     vi.mocked(fetchPlacemarksBBox).mockResolvedValueOnce(mockBBoxResponse);
 
     // Start with null bbox
-    const { result, rerender } = renderHook(
+    const { result, rerender } = renderHook<
+      ReturnType<typeof usePlacemarksBBox>,
+      { bbox: BBox | null }
+    >(
       ({ bbox }: { bbox: BBox | null }) => usePlacemarksBBox(bbox),
       {
         wrapper,
@@ -502,7 +505,10 @@ describe('usePlacemarksBBox', () => {
     vi.mocked(fetchPlacemarksBBox).mockResolvedValueOnce(mockBBoxResponse);
 
     // Start with valid bbox
-    const { result, rerender } = renderHook(
+    const { result, rerender } = renderHook<
+      ReturnType<typeof usePlacemarksBBox>,
+      { bbox: BBox | null }
+    >(
       ({ bbox }: { bbox: BBox | null }) => usePlacemarksBBox(bbox),
       {
         wrapper,
