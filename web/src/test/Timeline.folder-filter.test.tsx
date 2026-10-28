@@ -172,7 +172,7 @@ describe('Timeline - Folder Filter Integration', () => {
     });
 
     // Select a folder
-    const select = screen.getByRole('combobox');
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
     useViewStore.setState({ selectedFolder: 'Audio (911 calls)' });
 
     // Wait for filter to apply
@@ -213,7 +213,7 @@ describe('Timeline - Folder Filter Integration', () => {
     });
 
     // Select "Places of Interest" folder (Event 4 has null timestamp)
-    const select = screen.getByRole('combobox');
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
     useViewStore.setState({ selectedFolder: 'Places of Interest' });
 
     // Wait for filter to apply
@@ -241,7 +241,7 @@ describe('Timeline - Folder Filter Integration', () => {
     });
 
     // Select a folder filter
-    const select = screen.getByRole('combobox');
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
     useViewStore.setState({ selectedFolder: 'Videos taken on foot' });
 
     // Wait for filter to apply
@@ -274,7 +274,7 @@ describe('Timeline - Folder Filter Integration', () => {
     });
 
     // Apply filter
-    const select = screen.getByRole('combobox');
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
     useViewStore.setState({ selectedFolder: 'Videos taken on foot' });
 
     await waitFor(() => {
@@ -348,7 +348,7 @@ describe('Timeline - Folder Filter Integration', () => {
     });
 
     // Apply folder filter
-    const select = screen.getByRole('combobox');
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
     useViewStore.setState({ selectedFolder: 'Videos taken on foot' });
 
     await waitFor(() => {

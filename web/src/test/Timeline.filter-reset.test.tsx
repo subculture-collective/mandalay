@@ -16,10 +16,14 @@ vi.mock('../lib/api', () => ({
 // Import after mock to get the mocked version
 import { fetchTimelineEvents, fetchFolders } from '../lib/api';
 
+// datetime-local filter inputs represent wall times in the current timezone.
+// Build fixture instants from those same local times, including boundary events.
+const localTimestamp = (value: string) => new Date(value).toISOString();
+
 // Mock data
 const mockTimelineEvents: TimelineEvent[] = [
   {
-    timestamp: '2017-10-01T21:00:00Z',
+    timestamp: localTimestamp('2017-10-01T21:00:00'),
     name: 'Event 1',
     description: 'First event description',
     location: { lat: 36.094506, lon: -115.172281 },
@@ -28,7 +32,7 @@ const mockTimelineEvents: TimelineEvent[] = [
     folder_path: ['Folder A'],
   },
   {
-    timestamp: '2017-10-01T21:30:00Z',
+    timestamp: localTimestamp('2017-10-01T21:30:00'),
     name: 'Event 2',
     description: 'Second event description',
     location: { lat: 36.095506, lon: -115.173281 },
@@ -37,7 +41,7 @@ const mockTimelineEvents: TimelineEvent[] = [
     folder_path: ['Folder B'],
   },
   {
-    timestamp: '2017-10-01T22:00:00Z',
+    timestamp: localTimestamp('2017-10-01T22:00:00'),
     name: 'Event 3',
     description: 'Third event description',
     location: { lat: 36.096506, lon: -115.174281 },

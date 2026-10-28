@@ -78,7 +78,7 @@ async function copyToClipboard(text: string): Promise<boolean> {
 
 export function PlacemarkDetail({ detail }: PlacemarkDetailProps) {
   const [copied, setCopied] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Cleanup timeout on unmount
   useEffect(() => {

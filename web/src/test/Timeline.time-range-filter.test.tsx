@@ -16,10 +16,14 @@ vi.mock('../lib/api', () => ({
 // Import after mock to get the mocked version
 import { fetchTimelineEvents, fetchPlacemark, fetchFolders } from '../lib/api';
 
+// datetime-local filter inputs represent wall times in the current timezone.
+// Build fixture instants from those same local times, including boundary events.
+const localTimestamp = (value: string) => new Date(value).toISOString();
+
 // Mock data with various timestamps
 const mockTimelineEvents: TimelineEvent[] = [
   {
-    timestamp: '2017-10-01T20:00:00Z',
+    timestamp: localTimestamp('2017-10-01T20:00:00'),
     name: 'Early Event',
     description: 'Event before the main time window',
     location: { lat: 36.094506, lon: -115.172281 },
@@ -28,7 +32,7 @@ const mockTimelineEvents: TimelineEvent[] = [
     folder_path: ['Test'],
   },
   {
-    timestamp: '2017-10-01T21:00:00Z',
+    timestamp: localTimestamp('2017-10-01T21:00:00'),
     name: 'Start Boundary Event',
     description: 'Event exactly at start boundary',
     location: { lat: 36.095506, lon: -115.173281 },
@@ -37,7 +41,7 @@ const mockTimelineEvents: TimelineEvent[] = [
     folder_path: ['Test'],
   },
   {
-    timestamp: '2017-10-01T21:30:00Z',
+    timestamp: localTimestamp('2017-10-01T21:30:00'),
     name: 'Middle Event',
     description: 'Event in the middle of time range',
     location: { lat: 36.096506, lon: -115.174281 },
@@ -46,7 +50,7 @@ const mockTimelineEvents: TimelineEvent[] = [
     folder_path: ['Test'],
   },
   {
-    timestamp: '2017-10-01T22:00:00Z',
+    timestamp: localTimestamp('2017-10-01T22:00:00'),
     name: 'End Boundary Event',
     description: 'Event exactly at end boundary',
     location: { lat: 36.097506, lon: -115.175281 },
@@ -55,7 +59,7 @@ const mockTimelineEvents: TimelineEvent[] = [
     folder_path: ['Test'],
   },
   {
-    timestamp: '2017-10-01T23:00:00Z',
+    timestamp: localTimestamp('2017-10-01T23:00:00'),
     name: 'Late Event',
     description: 'Event after the main time window',
     location: { lat: 36.098506, lon: -115.176281 },
@@ -85,7 +89,7 @@ const mockPlacemarkDetail: PlacemarkDetail = {
   description: 'Detailed description',
   style_id: 'icon-1538-0288D1',
   folder_path: ['Test'],
-  timestamp: '2017-10-01T21:30:00Z',
+  timestamp: localTimestamp('2017-10-01T21:30:00'),
   location: {
     type: 'Point',
     coordinates: [-115.174281, 36.096506],
@@ -334,7 +338,7 @@ describe('Timeline - Time Range Filter', () => {
     const eventsWithMultipleFolders: TimelineEvent[] = [
       ...mockTimelineEvents,
       {
-        timestamp: '2017-10-01T21:30:00Z',
+        timestamp: localTimestamp('2017-10-01T21:30:00'),
         name: 'Other Folder Event',
         description: 'Event in different folder',
         location: { lat: 36.100506, lon: -115.178281 },

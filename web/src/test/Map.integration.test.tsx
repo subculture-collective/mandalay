@@ -1,10 +1,14 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { createQueryClient } from '../lib/queryClient';
 import { Map } from '../components/Map';
 import { useViewStore } from '../lib/store';
 import type { BBoxResponse } from '../types/api';
+
+const mockGlobal = globalThis as typeof globalThis & {
+  __mockMoveEndHandler?: () => void;
+};
 
 // Mock the MapFlyToHandler
 vi.mock('../components/MapFlyToHandler', () => ({
@@ -18,29 +22,33 @@ vi.mock('../lib/api', () => ({
 
 import { fetchPlacemarksBBox } from '../lib/api';
 
+// Leaflet returns the same map instance across renders. A new object here
+// would rerun MapBoundsHandler's initial-bounds effect after every bbox update.
+const mockMap = {
+  invalidateSize: vi.fn(),
+  getBounds: vi.fn(() => ({
+    getWest: () => -115.2,
+    getSouth: () => 36.0,
+    getEast: () => -115.1,
+    getNorth: () => 36.1,
+  })),
+  getZoom: vi.fn(() => 13),
+  getSize: vi.fn(() => ({ x: 800, y: 600 })),
+  latLngToContainerPoint: vi.fn(() => ({ x: 400, y: 300 })),
+  flyTo: vi.fn(),
+};
+
 // Mock react-leaflet
 vi.mock('react-leaflet', () => ({
   MapContainer: ({ children }: { children?: React.ReactNode }) => (
     <div data-testid="mock-map-container">{children}</div>
   ),
   TileLayer: () => <div data-testid="mock-tile-layer" />,
-  useMap: () => ({
-    invalidateSize: vi.fn(),
-    getBounds: vi.fn(() => ({
-      getWest: () => -115.2,
-      getSouth: () => 36.0,
-      getEast: () => -115.1,
-      getNorth: () => 36.1,
-    })),
-    getZoom: vi.fn(() => 13),
-    getSize: vi.fn(() => ({ x: 800, y: 600 })),
-    latLngToContainerPoint: vi.fn(() => ({ x: 400, y: 300 })),
-    flyTo: vi.fn(),
-  }),
+  useMap: () => mockMap,
   useMapEvents: (events: { moveend?: () => void }) => {
     // Store the moveend handler for later use
     if (events.moveend) {
-      (globalThis as any).__mockMoveEndHandler = events.moveend;
+      mockGlobal.__mockMoveEndHandler = events.moveend;
     }
     return null;
   },
@@ -95,7 +103,11 @@ describe('Map Integration - Placemark Markers', () => {
     useViewStore.setState({ selectedPlacemarkId: null });
     vi.clearAllMocks();
     // Clear global mock handler
-    delete (globalThis as any).__mockMoveEndHandler;
+    delete mockGlobal.__mockMoveEndHandler;
+  });
+
+  afterEach(() => {
+    queryClient.clear();
   });
 
   it('fetches and renders placemarks for the initial map viewport', async () => {

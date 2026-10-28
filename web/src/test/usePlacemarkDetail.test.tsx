@@ -284,7 +284,10 @@ describe('usePlacemarkDetail', () => {
     vi.mocked(fetchPlacemark).mockResolvedValueOnce(mockPlacemarkDetail);
 
     // Start with null id
-    const { result, rerender } = renderHook(
+    const { result, rerender } = renderHook<
+      ReturnType<typeof usePlacemarkDetail>,
+      { id: number | null }
+    >(
       ({ id }: { id: number | null }) => usePlacemarkDetail(id),
       {
         wrapper,
@@ -317,7 +320,10 @@ describe('usePlacemarkDetail', () => {
     vi.mocked(fetchPlacemark).mockResolvedValueOnce(mockPlacemarkDetail);
 
     // Start with valid id
-    const { result, rerender } = renderHook(
+    const { result, rerender } = renderHook<
+      ReturnType<typeof usePlacemarkDetail>,
+      { id: number | null }
+    >(
       ({ id }: { id: number | null }) => usePlacemarkDetail(id),
       {
         wrapper,

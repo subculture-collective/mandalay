@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useViewStore } from '../lib/store';
 
 /**
@@ -6,26 +6,46 @@ import { useViewStore } from '../lib/store';
  * Filters events by name and description with configurable debounce delay.
  */
 export function SearchFilter() {
-  const { searchText, setSearchText } = useViewStore();
-  const [inputValue, setInputValue] = useState(searchText);
+  const setSearchText = useViewStore((state) => state.setSearchText);
+  const [inputValue, setInputValue] = useState(() => useViewStore.getState().searchText);
+  const pendingSearch = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Debounce the search text update to the store
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setSearchText(inputValue);
-    }, 300); // 300ms debounce delay
+    // An external filter update takes precedence over an uncommitted draft.
+    const unsubscribe = useViewStore.subscribe((state, previousState) => {
+      if (state.searchText !== previousState.searchText) {
+        if (pendingSearch.current !== null) {
+          clearTimeout(pendingSearch.current);
+          pendingSearch.current = null;
+        }
+        setInputValue(state.searchText);
+      }
+    });
 
-    return () => clearTimeout(timeoutId);
-  }, [inputValue, setSearchText]);
+    return () => {
+      unsubscribe();
+      if (pendingSearch.current !== null) {
+        clearTimeout(pendingSearch.current);
+      }
+    };
+  }, []);
 
-  // Sync input value with store when store changes externally
-  useEffect(() => {
-    if (searchText !== inputValue) {
-      setInputValue(searchText);
+  const handleChange = (value: string) => {
+    setInputValue(value);
+    if (pendingSearch.current !== null) {
+      clearTimeout(pendingSearch.current);
     }
-  }, [searchText]);
+    pendingSearch.current = setTimeout(() => {
+      pendingSearch.current = null;
+      setSearchText(value);
+    }, 300);
+  };
 
   const handleClear = () => {
+    if (pendingSearch.current !== null) {
+      clearTimeout(pendingSearch.current);
+      pendingSearch.current = null;
+    }
     setInputValue('');
     setSearchText('');
   };
@@ -56,7 +76,7 @@ export function SearchFilter() {
           id="search-filter"
           type="text"
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+          onChange={(e) => handleChange(e.target.value)}
           placeholder="Search by name or description..."
           className="block w-full rounded-md border border-gray-300 bg-white py-2 pl-10 pr-10 text-sm placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         />

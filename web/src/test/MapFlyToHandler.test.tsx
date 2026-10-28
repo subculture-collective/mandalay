@@ -30,25 +30,25 @@ describe('MapFlyToHandler', () => {
 
   it('does not fly when no placemark is selected', () => {
     render(<MapFlyToHandler getCoordinates={mockGetCoordinates} />);
-    
+
     expect(mockFlyTo).not.toHaveBeenCalled();
   });
 
   it('flies to marker when selection changes from null to a placemark', async () => {
     // Mock marker outside viewport padding
     mockLatLngToContainerPoint.mockReturnValue({ x: 50, y: 50 });
-    
+
     render(<MapFlyToHandler getCoordinates={mockGetCoordinates} />);
-    
+
     // Select a placemark using the store's action
     act(() => {
       useViewStore.getState().selectPlacemark(123);
     });
-    
+
     await waitFor(() => {
       expect(mockGetCoordinates).toHaveBeenCalledWith(123);
     });
-    
+
     await waitFor(() => {
       expect(mockFlyTo).toHaveBeenCalledWith(
         [36.094506, -115.172281],
@@ -64,72 +64,88 @@ describe('MapFlyToHandler', () => {
   it('does not fly if marker is already in viewport with padding', async () => {
     // Mock marker in center of viewport (within padding)
     mockLatLngToContainerPoint.mockReturnValue({ x: 400, y: 300 });
-    
+
     render(<MapFlyToHandler getCoordinates={mockGetCoordinates} viewportPadding={100} />);
-    
+
     // Select a placemark
-    useViewStore.getState().selectPlacemark(123);
-    
+    act(() => {
+      useViewStore.getState().selectPlacemark(123);
+    });
+
     // Wait a bit to ensure no fly happens
     await new Promise(resolve => setTimeout(resolve, 50));
-    
+
     expect(mockFlyTo).not.toHaveBeenCalled();
   });
 
   it('flies to marker if marker is outside viewport padding', async () => {
     // Mock marker near edge (outside padding of 100px)
     mockLatLngToContainerPoint.mockReturnValue({ x: 50, y: 50 });
-    
+
     render(<MapFlyToHandler getCoordinates={mockGetCoordinates} viewportPadding={100} />);
-    
+
     // Select a placemark
-    useViewStore.getState().selectPlacemark(123);
-    
+    act(() => {
+      useViewStore.getState().selectPlacemark(123);
+    });
+
     await waitFor(() => {
       expect(mockFlyTo).toHaveBeenCalled();
     });
   });
 
   it('does not fly again when same placemark is selected', async () => {
+    mockLatLngToContainerPoint.mockReturnValue({ x: 50, y: 50 });
+
     render(<MapFlyToHandler getCoordinates={mockGetCoordinates} />);
-    
+
     // Select a placemark
-    useViewStore.getState().selectPlacemark(123);
-    
+    act(() => {
+      useViewStore.getState().selectPlacemark(123);
+    });
+
     await waitFor(() => {
       expect(mockFlyTo).toHaveBeenCalled();
     });
-    
+
     mockFlyTo.mockClear();
-    
+
     // Select the same placemark again
-    useViewStore.getState().selectPlacemark(123);
-    
+    act(() => {
+      useViewStore.getState().selectPlacemark(123);
+    });
+
     // Wait a bit
     await new Promise(resolve => setTimeout(resolve, 50));
-    
+
     // Should not fly again
     expect(mockFlyTo).not.toHaveBeenCalled();
   });
 
   it('flies to new marker when selection changes from one placemark to another', async () => {
+    mockLatLngToContainerPoint.mockReturnValue({ x: 50, y: 50 });
+
     render(<MapFlyToHandler getCoordinates={mockGetCoordinates} />);
-    
+
     // Select first placemark
     mockGetCoordinates.mockReturnValue([36.094506, -115.172281]);
-    useViewStore.getState().selectPlacemark(123);
-    
+    act(() => {
+      useViewStore.getState().selectPlacemark(123);
+    });
+
     await waitFor(() => {
       expect(mockFlyTo).toHaveBeenCalled();
     });
-    
+
     mockFlyTo.mockClear();
-    
+
     // Select second placemark (different coordinates, outside padding)
     mockGetCoordinates.mockReturnValue([36.169941, -115.142857]);
     mockLatLngToContainerPoint.mockReturnValue({ x: 50, y: 50 }); // Outside padding
-    useViewStore.getState().selectPlacemark(456);
-    
+    act(() => {
+      useViewStore.getState().selectPlacemark(456);
+    });
+
     await waitFor(() => {
       expect(mockFlyTo).toHaveBeenCalledWith(
         [36.169941, -115.142857],
@@ -140,14 +156,18 @@ describe('MapFlyToHandler', () => {
   });
 
   it('respects maxZoom configuration', async () => {
+    mockLatLngToContainerPoint.mockReturnValue({ x: 50, y: 50 });
+
     render(<MapFlyToHandler getCoordinates={mockGetCoordinates} maxZoom={15} />);
-    
+
     // Mock current zoom higher than maxZoom
     mockGetZoom.mockReturnValue(18);
-    
+
     // Select a placemark
-    useViewStore.getState().selectPlacemark(123);
-    
+    act(() => {
+      useViewStore.getState().selectPlacemark(123);
+    });
+
     await waitFor(() => {
       expect(mockFlyTo).toHaveBeenCalledWith(
         expect.any(Array),
@@ -158,14 +178,18 @@ describe('MapFlyToHandler', () => {
   });
 
   it('zooms to maxZoom when current zoom is lower', async () => {
+    mockLatLngToContainerPoint.mockReturnValue({ x: 50, y: 50 });
+
     render(<MapFlyToHandler getCoordinates={mockGetCoordinates} maxZoom={16} />);
-    
+
     // Mock current zoom lower than maxZoom
     mockGetZoom.mockReturnValue(10);
-    
+
     // Select a placemark
-    useViewStore.getState().selectPlacemark(123);
-    
+    act(() => {
+      useViewStore.getState().selectPlacemark(123);
+    });
+
     await waitFor(() => {
       expect(mockFlyTo).toHaveBeenCalledWith(
         expect.any(Array),
@@ -177,31 +201,37 @@ describe('MapFlyToHandler', () => {
 
   it('handles invalid coordinates gracefully', async () => {
     mockGetCoordinates.mockReturnValue(null);
-    
+
     render(<MapFlyToHandler getCoordinates={mockGetCoordinates} />);
-    
+
     // Select a placemark with invalid coordinates
-    useViewStore.getState().selectPlacemark(999);
-    
+    act(() => {
+      useViewStore.getState().selectPlacemark(999);
+    });
+
     // Wait a bit
     await new Promise(resolve => setTimeout(resolve, 50));
-    
+
     // Should not fly
     expect(mockFlyTo).not.toHaveBeenCalled();
   });
 
   it('respects custom duration and viewportPadding', async () => {
+    mockLatLngToContainerPoint.mockReturnValue({ x: 50, y: 50 });
+
     render(
-      <MapFlyToHandler 
+      <MapFlyToHandler
         getCoordinates={mockGetCoordinates}
         duration={2.5}
         viewportPadding={150}
       />
     );
-    
+
     // Select a placemark
-    useViewStore.getState().selectPlacemark(123);
-    
+    act(() => {
+      useViewStore.getState().selectPlacemark(123);
+    });
+
     await waitFor(() => {
       expect(mockFlyTo).toHaveBeenCalledWith(
         expect.any(Array),
